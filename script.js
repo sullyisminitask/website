@@ -16,10 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'product': document.getElementById('view-product'),
     'status': document.getElementById('view-status'),
     'setup-guides': document.getElementById('view-setup-guides'),
-    'my-keys': document.getElementById('view-my-keys')
+    'my-keys': document.getElementById('view-my-keys'),
+    'tos': document.getElementById('view-tos')
   };
 
   const navTabs = document.querySelectorAll('.nav-tab[data-tab]');
+  const allTabTriggers = document.querySelectorAll('[data-tab]');
   const brandLogo = document.getElementById('brand-logo');
   const cartCounter = document.getElementById('cart-counter');
   const cartModal = document.getElementById('cart-modal');
@@ -45,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     history.replaceState(null, '', '#' + viewName);
   }
 
-  // nav clicks
-  navTabs.forEach(tab => {
+  // nav & tab clicks
+  allTabTriggers.forEach(tab => {
     tab.addEventListener('click', (e) => {
       const targetView = tab.getAttribute('data-tab');
       if (targetView && views[targetView]) {
@@ -63,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // hero action buttons
+  // hero & mini shop action buttons
   document.querySelectorAll('[data-action="go-shop"]').forEach(btn => {
     btn.addEventListener('click', () => switchView('shop'));
   });
@@ -72,10 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => switchView('product'));
   });
 
-  // product card clicks in shop
+  // product card clicks in shop & mini shop
   const cardRustElite = document.getElementById('card-rust-elite');
   if (cardRustElite) {
     cardRustElite.addEventListener('click', () => {
+      switchView('product');
+    });
+  }
+
+  const homeMiniCard = document.getElementById('home-mini-card');
+  if (homeMiniCard) {
+    homeMiniCard.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return; // let buttons handle their own click
       switchView('product');
     });
   }

@@ -199,11 +199,11 @@ body {
 /* hero area */
 .hero-container {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr 1.2fr;
   align-items: center;
-  gap: 48px;
-  min-height: 520px;
-  padding: 20px 0;
+  gap: 40px;
+  min-height: 620px;
+  padding: 10px 0 20px 0;
 }
 
 .hero-left {
@@ -305,21 +305,204 @@ body {
 .hero-image-wrap {
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 720px;
   display: flex;
   justify-content: center;
 }
 
 .hero-image {
   width: 100%;
-  max-height: 520px;
+  max-height: 650px;
   object-fit: contain;
-  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.95));
   transition: transform 0.3s ease;
+  transform: scale(1.1);
 }
 
 .hero-image:hover {
-  transform: scale(1.02);
+  transform: scale(1.13);
+}
+
+/* home stats separator */
+.home-stats-separator {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 24px 32px;
+  margin: 50px 0 60px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stat-icon {
+  width: 24px;
+  height: 24px;
+  stroke: var(--baby-blue);
+  flex-shrink: 0;
+}
+
+.stat-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-white);
+  letter-spacing: -0.01em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border-card);
+}
+
+/* mini shop: our best seller */
+.home-mini-shop {
+  margin-bottom: 70px;
+}
+
+.mini-shop-header {
+  margin-bottom: 24px;
+}
+
+.mini-shop-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.mini-shop-subtitle {
+  color: var(--text-grey);
+  font-size: 0.95rem;
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.mini-shop-card {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mini-shop-card:hover {
+  border-color: var(--baby-blue);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 20px var(--baby-blue-glow);
+}
+
+.mini-shop-image-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  background: #02040a;
+}
+
+.mini-shop-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mini-card-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: var(--status-green-bg);
+  color: var(--status-green);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+.mini-shop-card-right {
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mini-best-tag {
+  display: inline-block;
+  background: var(--status-yellow-bg);
+  color: var(--status-yellow);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  align-self: flex-start;
+}
+
+.mini-product-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-white);
+}
+
+.mini-product-desc {
+  color: var(--text-grey);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.mini-price-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.mini-price-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mini-price-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--baby-blue);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.btn-browse {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+  transition: all 0.2s;
+}
+
+.btn-browse:hover {
+  background: #f3f4f6 !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 /* shop view hero stack */
@@ -1327,6 +1510,83 @@ body {
   color: var(--baby-blue);
 }
 
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
+/* tos view */
+.tos-container {
+  max-width: 820px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.tos-header {
+  text-align: center;
+}
+
+.tos-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tos-subtitle {
+  color: var(--text-grey);
+  margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+}
+
+.tos-content-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 20px;
+}
+
+.tos-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tos-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.tos-text {
+  font-size: 0.92rem;
+  color: var(--text-grey-light);
+  line-height: 1.6;
+}
+
 /* responsive */
 @media (max-width: 900px) {
   .hero-container {
@@ -1339,6 +1599,16 @@ body {
   }
   .hero-slogans {
     justify-content: center;
+  }
+  .home-stats-separator {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .stat-divider {
+    display: none;
+  }
+  .mini-shop-card {
+    grid-template-columns: 1fr;
   }
   .product-detail-layout {
     grid-template-columns: 1fr;

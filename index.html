@@ -67,6 +67,55 @@
           </div>
         </div>
       </div>
+
+      <!-- home stats separator -->
+      <div class="home-stats-separator">
+        <div class="stat-item">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span class="stat-text">99% uptime</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="stat-text">24/7 support</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          <span class="stat-text">trusted seller</span>
+        </div>
+      </div>
+
+      <!-- mini shop: our best seller -->
+      <div class="home-mini-shop">
+        <div class="mini-shop-header">
+          <h2 class="mini-shop-title highlighted">our best seller</h2>
+          <p class="mini-shop-subtitle">if everyone is cheating nobody is.</p>
+        </div>
+
+        <div class="mini-shop-card" id="home-mini-card">
+          <div class="mini-shop-card-left">
+            <div class="mini-shop-image-box">
+              <img src="assets/product-rust-box.jpg" alt="rust elite" class="mini-shop-image">
+              <span class="mini-card-badge">undetected</span>
+            </div>
+          </div>
+          <div class="mini-shop-card-right">
+            <div class="mini-card-top-row">
+              <span class="mini-best-tag">best seller</span>
+              <h3 class="mini-product-title">rust elite</h3>
+            </div>
+            <p class="mini-product-desc">our cheat currently has a small userbase making detctions rare from anti-cheats. look below for our feature list.</p>
+            <div class="mini-price-action-row">
+              <div class="mini-price-group">
+                <span class="mini-price-text">starts at $7.99</span>
+                <button class="btn-browse" data-action="go-shop">browse</button>
+              </div>
+              <button class="btn-primary" data-action="go-product">view rust elite</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- shop view -->
@@ -521,6 +570,38 @@
         </div>
       </div>
     </section>
+
+    <!-- tos view -->
+    <section class="page-view" id="view-tos">
+      <div class="tos-container">
+        <div class="tos-header">
+          <h2 class="tos-title highlighted">terms of service</h2>
+          <p class="tos-subtitle">chudcheats.xyz terms and conditions</p>
+        </div>
+        <div class="tos-content-card">
+          <div class="tos-section">
+            <h4 class="tos-section-title">1. digital goods & delivery</h4>
+            <p class="tos-text">all products offered on chudcheats.xyz are intangible digital license keys and downloadable software. delivery occurs immediately following successful payment.</p>
+          </div>
+          <div class="tos-section">
+            <h4 class="tos-section-title">2. refund policy</h4>
+            <p class="tos-text">due to the nature of digital license keys and instant access, all sales are final. no refunds or exchanges will be provided once a license key has been generated or delivered.</p>
+          </div>
+          <div class="tos-section">
+            <h4 class="tos-section-title">3. software use & testing</h4>
+            <p class="tos-text">software is provided for private research and educational testing purposes. users are responsible for compliance with third-party platform rules. we do not guarantee indefinite bypass as anti-cheats continually update.</p>
+          </div>
+          <div class="tos-section">
+            <h4 class="tos-section-title">4. license agreement</h4>
+            <p class="tos-text">each license key is valid solely for the duration purchased (1 day, 3 day, week, month, or 3 month) and cannot be shared, transferred, resold, or sublicensed without authorization.</p>
+          </div>
+          <div class="tos-section">
+            <h4 class="tos-section-title">5. support & inquiries</h4>
+            <p class="tos-text">customer support is available exclusively through our official discord community at <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">discord</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- cart modal / drawer -->
@@ -556,6 +637,7 @@
         <span class="footer-seller-slogan">"if everyone is cheating nobody is."</span>
       </div>
       <div class="footer-right">
+        <button class="footer-link nav-link-btn" data-tab="tos">tos</button>
         <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">support discord</a>
       </div>
     </div>
