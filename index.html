@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chudcheats.xyz</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- top banner -->
+  <header class="top-banner">
+    <div class="banner-inner">
+      <div class="banner-brand">
+        <a href="#home" class="brand-link" id="brand-logo">chudcheats.xyz</a>
+      </div>
+      <nav class="banner-nav">
+        <button class="nav-tab active" data-tab="shop">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span>shop</span>
+        </button>
+        <button class="nav-tab" data-tab="status">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>status</span>
+        </button>
+        <button class="nav-tab" data-tab="setup-guides">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+          <span>setup guides</span>
+        </button>
+        <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="nav-tab support-tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>support</span>
+        </a>
+        <button class="nav-tab" data-tab="my-keys">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+          <span>my keys</span>
+        </button>
+      </nav>
+      <div class="banner-right">
+        <button class="cart-btn" id="open-cart-btn" title="cart">
+          <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <span class="cart-count" id="cart-counter">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- home view (hero area) -->
+    <section class="page-view" id="view-home">
+      <div class="hero-container">
+        <div class="hero-left">
+          <div class="hero-eyebrow">#1 provider</div>
+          <h1 class="hero-title highlighted">chudcheats.xyz</h1>
+          <p class="hero-subtitle">for your undetected game cheats.</p>
+          <div class="hero-slogans">
+            <span class="slogan-badge">"created control."</span>
+            <span class="slogan-badge seller">"if everyone is cheating nobody is."</span>
+          </div>
+          <div class="hero-actions">
+            <button class="btn-primary" data-action="go-shop">browse shop</button>
+            <button class="btn-secondary" data-action="go-product">view rust elite</button>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="hero-image-wrap">
+            <img src="assets/hero-arctic-scientist.png" alt="rust arctic scientist" class="hero-image">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- shop view -->
+    <section class="page-view" id="view-shop">
+      <div class="shop-hero">
+        <div class="search-container">
+          <div class="search-input-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="shop-search" class="search-input" placeholder="search cheats...">
+          </div>
+        </div>
+        <div class="stock-info">
+          <span id="stock-count">1</span> products in stock
+        </div>
+        <div class="categories-bar">
+          <span class="category-pill active">rust</span>
+        </div>
+      </div>
+
+      <div class="products-grid" id="products-grid">
+        <div class="product-card" id="card-rust-elite">
+          <div class="card-badge-wrap">
+            <div class="card-badge undetected">undetected</div>
+          </div>
+          <div class="card-image-box">
+            <img src="assets/product-rust-box.jpg" alt="rust elite" class="card-image">
+          </div>
+          <div class="card-title-box">
+            <h3 class="card-title">rust elite</h3>
+          </div>
+          <div class="card-price-box">
+            <span class="card-price">starting from 7.99</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- payment page (product detail & plans) -->
+    <section class="page-view" id="view-product">
+      <div class="product-detail-layout">
+        <!-- left side: product card -->
+        <div class="detail-left">
+          <div class="product-card showcase-card">
+            <div class="card-badge-wrap">
+              <div class="card-badge undetected">undetected</div>
+            </div>
+            <div class="card-image-box">
+              <img src="assets/product-rust-box.jpg" alt="rust elite" class="card-image">
+            </div>
+            <div class="card-title-box">
+              <h3 class="card-title">rust elite</h3>
+            </div>
+            <div class="card-price-box">
+              <span class="card-price">starting from 7.99</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- right side: details and plans -->
+        <div class="detail-right">
+          <h2 class="bold-heading-title">rust elite</h2>
+          
+          <div class="underglow-badges">
+            <span class="underglow-tag glow-green">undetected</span>
+            <span class="underglow-tag glow-yellow">best seller</span>
+            <span class="underglow-tag glow-blue">helpful support</span>
+          </div>
+
+          <p class="product-description">
+            rust elite, if everyone is cheating is anyone? why not join them with the best cheat on the market. but what makes it good? our cheat currently has a small userbase making detctions rare from anti-cheats. look below for our feature list.
+          </p>
+
+          <div class="plans-section">
+            <div class="plans-title">select plan</div>
+            <div class="plans-grid">
+              <label class="plan-option" data-plan="1 day" data-price="7.99">
+                <input type="radio" name="plan" value="1 day" data-price="7.99">
+                <div class="plan-content">
+                  <div class="plan-name">1 day</div>
+                  <div class="plan-price">$7.99</div>
+                </div>
+              </label>
+
+              <label class="plan-option best-seller-plan selected" data-plan="3 day" data-price="16.99">
+                <input type="radio" name="plan" value="3 day" data-price="16.99" checked>
+                <div class="plan-content">
+                  <div class="plan-top-row">
+                    <span class="plan-name">3 day</span>
+                    <span class="plan-tag">best seller</span>
+                  </div>
+                  <div class="plan-price">$16.99</div>
+                </div>
+              </label>
+
+              <label class="plan-option" data-plan="week" data-price="25.99">
+                <input type="radio" name="plan" value="week" data-price="25.99">
+                <div class="plan-content">
+                  <div class="plan-name">week</div>
+                  <div class="plan-price">$25.99</div>
+                </div>
+              </label>
+
+              <label class="plan-option" data-plan="month" data-price="54.99">
+                <input type="radio" name="plan" value="month" data-price="54.99">
+                <div class="plan-content">
+                  <div class="plan-name">month</div>
+                  <div class="plan-price">$54.99</div>
+                </div>
+              </label>
+
+              <label class="plan-option" data-plan="3 month" data-price="139.99">
+                <input type="radio" name="plan" value="3 month" data-price="139.99">
+                <div class="plan-content">
+                  <div class="plan-name">3 month</div>
+                  <div class="plan-price">$139.99</div>
+                </div>
+              </label>
+            </div>
+
+            <div class="plan-action-box">
+              <div class="selected-plan-summary">
+                <span class="summary-label">selected plan:</span>
+                <span class="summary-value" id="selected-plan-display">3 day ($16.99)</span>
+              </div>
+              <button class="btn-add-to-cart" id="add-to-cart-btn">
+                <svg class="btn-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                <span>add to cart</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- under those: system requirements and features -->
+      <div class="product-bottom-section">
+        <div class="system-requirements-card">
+          <div class="requirements-header">
+            <svg class="req-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            <h3 class="req-title">system requirements</h3>
+          </div>
+          <div class="req-body">
+            <span class="req-spec">windows 10/11, cpus amd, intel</span>
+          </div>
+        </div>
+
+        <div class="features-wrapper">
+          <div class="features-main-title">features</div>
+          <div class="features-accordion">
+            <!-- 1. aimbot & silent -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>aimbot & silent</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>memory aim</li>
+                  <li>silent aim</li>
+                  <li>smoothing</li>
+                  <li>fov size</li>
+                  <li>draw fov</li>
+                  <li>aim line</li>
+                  <li>prediction</li>
+                  <li>prediction type</li>
+                  <li>dynamic fov</li>
+                  <li>ignore npcs</li>
+                  <li>ignore team</li>
+                  <li>visibility check</li>
+                  <li>ignore sleepers</li>
+                  <li>hitchance</li>
+                  <li>target bone</li>
+                  <li>hotkey</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 2. combat features -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>combat features</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>remove recoil</li>
+                  <li>x 0% - 100%</li>
+                  <li>y 0% - 100%</li>
+                  <li>remove spread</li>
+                  <li>fast bow</li>
+                  <li>instant eoka</li>
+                  <li>thick bullet</li>
+                  <li>bullet widith</li>
+                  <li>bullet tracers</li>
+                  <li>bullet tracer type</li>
+                  <li>aimbot targeting</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 3. visuals -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>visuals</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>box</li>
+                  <li>skeleton</li>
+                  <li>snaplines</li>
+                  <li>names</li>
+                  <li>steam avatar</li>
+                  <li>distance</li>
+                  <li>team id</li>
+                  <li>raid detector</li>
+                  <li>held item</li>
+                  <li>held style, picture, name</li>
+                  <li>hotbar</li>
+                  <li>amour</li>
+                  <li>oof arrows</li>
+                  <li>box style</li>
+                  <li>max distance</li>
+                  <li>draw dead</li>
+                  <li>chams > vis colour, invis colour</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 4. radar -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>radar</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>black circle</li>
+                  <li>real map</li>
+                  <li>transparency</li>
+                  <li>marker size</li>
+                  <li>range</li>
+                  <li>size</li>
+                  <li>localplayer</li>
+                  <li>teamates</li>
+                  <li>npcs</li>
+                  <li>enemy</li>
+                  <li>nodes</li>
+                  <li>hemp</li>
+                  <li>held items</li>
+                  <li>hotbar</li>
+                  <li>amour</li>
+                  <li>team colouring</li>
+                  <li>outline colours</li>
+                  <li>player count</li>
+                  <li>node count</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 5. world esp -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>world esp</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>all ores</li>
+                  <li>all crates</li>
+                  <li>all animals</li>
+                  <li>all vehicles</li>
+                  <li>range for all</li>
+                  <li>dropped items</li>
+                  <li>body bags</li>
+                  <li>player corpse</li>
+                  <li>npc corpses</li>
+                  <li>cupboards</li>
+                  <li>traps</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 6. misc -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>misc</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>watermark</li>
+                  <li>esp font</li>
+                  <li>xray</li>
+                  <li>custom fov</li>
+                  <li>zoom</li>
+                  <li>custom time</li>
+                  <li>bright night</li>
+                  <li>hand chams</li>
+                  <li>weapon chams</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 7. movement -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>movement</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>omni sprint</li>
+                  <li>no fall</li>
+                  <li>shoot while midair</li>
+                  <li>spiderman</li>
+                  <li>inf jump</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 8. settings -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>settings</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>accent colour</li>
+                  <li>menu key</li>
+                  <li>panic key</li>
+                  <li>config</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 9. cham lists -->
+            <div class="accordion-item">
+              <button class="accordion-trigger">
+                <span>cham lists</span>
+                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="accordion-content">
+                <ul class="feature-items">
+                  <li>green glow, glass , flat</li>
+                  <li>yellow glow, glass , flat</li>
+                  <li>red glow, glass , flat</li>
+                  <li>blue glow, glass , flat</li>
+                  <li>pink glow, glass , flat</li>
+                  <li>purple glow, glass , flat</li>
+                  <li>water droplet</li>
+                  <li>fire</li>
+                  <li>portal door</li>
+                  <li>wireframe</li>
+                  <li>chrome</li>
+                  <li>thru walls</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- status view -->
+    <section class="page-view" id="view-status">
+      <div class="status-container">
+        <div class="status-search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="status-search" class="search-input" placeholder="search status...">
+        </div>
+        
+        <div class="status-counters">
+          <div class="status-counter-box counter-undetected">
+            <span class="counter-num">1</span>
+            <span class="counter-label">undetected</span>
+          </div>
+          <div class="status-counter-box counter-updating">
+            <span class="counter-num">0</span>
+            <span class="counter-label">updating</span>
+          </div>
+          <div class="status-counter-box counter-not-working">
+            <span class="counter-num">0</span>
+            <span class="counter-label">not working</span>
+          </div>
+        </div>
+
+        <div class="status-card-list">
+          <div class="status-row-card" data-title="rust elite">
+            <div class="status-row-left">
+              <span class="status-product-name">rust elite</span>
+            </div>
+            <div class="status-row-separator">:</div>
+            <div class="status-row-right">
+              <span class="status-tag tag-undetected">undetected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- setup guides view -->
+    <section class="page-view" id="view-setup-guides">
+      <div class="guides-container">
+        <div class="guides-header">
+          <h2 class="guides-title">setup guides</h2>
+          <p class="guides-subtitle">windows 10/11, cpus amd, intel</p>
+        </div>
+        <div class="guides-steps">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-details">
+              <h4 class="step-title">system check</h4>
+              <p class="step-text">ensure your system meets requirements: windows 10/11, cpus amd, intel.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-details">
+              <h4 class="step-title">license key</h4>
+              <p class="step-text">obtain your key from the shop or enter it in the my keys section.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-details">
+              <h4 class="step-title">launch & play</h4>
+              <p class="step-text">start rust elite before launching rust for undetected control.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- my keys view -->
+    <section class="page-view" id="view-my-keys">
+      <div class="keys-container">
+        <div class="keys-header">
+          <h2 class="keys-title">my keys</h2>
+          <p class="keys-subtitle">manage and redeem your active license keys</p>
+        </div>
+        <div class="keys-card">
+          <div class="key-input-row">
+            <input type="text" id="license-key-input" class="key-input" placeholder="enter license key (e.g. rust-xxxx-xxxx)">
+            <button class="btn-redeem" id="redeem-key-btn">redeem key</button>
+          </div>
+          <div id="key-feedback" class="key-feedback"></div>
+          <div class="keys-list" id="active-keys-list">
+            <!-- dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- cart modal / drawer -->
+  <div class="modal-backdrop" id="cart-modal">
+    <div class="cart-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">cart</h3>
+        <button class="modal-close-btn" id="close-cart-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="cart-items-container" id="cart-items">
+        <div class="empty-cart-msg">your cart is empty</div>
+      </div>
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span>total</span>
+          <span id="cart-total-price">$0.00</span>
+        </div>
+        <button class="btn-checkout" id="checkout-btn">proceed to checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <span class="footer-brand">chudcheats.xyz</span>
+        <span class="footer-slogan">"created control."</span>
+      </div>
+      <div class="footer-center">
+        <span class="footer-seller-slogan">"if everyone is cheating nobody is."</span>
+      </div>
+      <div class="footer-right">
+        <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">support discord</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
