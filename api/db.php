@@ -77,7 +77,23 @@ function initializeDatabase(PDO $pdo): void {
             user_id INTEGER NOT NULL,
             license_key VARCHAR(255) NOT NULL,
             product VARCHAR(100) NOT NULL,
+            plan VARCHAR(100) DEFAULT '1 day',
+            order_id VARCHAR(100) DEFAULT NULL,
             status VARCHAR(50) DEFAULT 'active',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            order_id VARCHAR(100) UNIQUE NOT NULL,
+            square_order_id VARCHAR(100) DEFAULT NULL,
+            square_payment_id VARCHAR(100) DEFAULT NULL,
+            amount DECIMAL(10, 2) NOT NULL,
+            currency VARCHAR(10) DEFAULT 'USD',
+            status VARCHAR(50) DEFAULT 'completed',
+            items TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
@@ -95,6 +111,18 @@ function initializeDatabase(PDO $pdo): void {
 
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         CREATE INDEX IF NOT EXISTS idx_user_keys_userid ON user_keys(user_id);
+        CREATE INDEX IF NOT EXISTS idx_user_keys_key ON user_keys(license_key);
+        CREATE INDEX IF NOT EXISTS idx_orders_userid ON orders(user_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_orderid ON orders(order_id);
         CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
     ");
+
+    // Dynamic schema migration for existing SQLite files
+    try {
+        $pdo->exec("ALTER TABLE user_keys ADD COLUMN plan VARCHAR(100) DEFAULT '1 day'");
+    } catch (Throwable $e) {}
+
+    try {
+        $pdo->exec("ALTER TABLE user_keys ADD COLUMN order_id VARCHAR(100) DEFAULT NULL");
+    } catch (Throwable $e) {}
 }

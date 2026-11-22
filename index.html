@@ -559,18 +559,42 @@
     <section class="page-view" id="view-my-keys">
       <div class="keys-container">
         <div class="keys-header">
-          <h2 class="keys-title">my keys</h2>
-          <p class="keys-subtitle">manage and redeem your active license keys</p>
+          <h2 class="keys-title highlighted">my keys</h2>
+          <p class="keys-subtitle">all license keys stored in your account database</p>
         </div>
+
+        <!-- account connection status bar -->
+        <div class="keys-account-bar" id="keys-account-bar">
+          <div class="account-bar-info">
+            <svg class="account-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span id="keys-account-status">not signed in — keys bought while signed out are stored locally. log in to sync across devices.</span>
+          </div>
+          <button class="btn-account-sync" id="keys-sync-btn">sign in / register</button>
+        </div>
+
         <div class="keys-card">
+          <div class="keys-section-header">
+            <h3 class="section-title">purchased license keys</h3>
+            <span class="keys-count-badge" id="keys-count-badge">0 keys</span>
+          </div>
+
+          <div class="keys-list" id="active-keys-list">
+            <div class="empty-keys-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+              <p>no license keys found in this account.</p>
+              <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
+            </div>
+          </div>
+
+          <div class="redeem-separator">
+            <span>or redeem / bind an external key</span>
+          </div>
+
           <div class="key-input-row">
             <input type="text" id="license-key-input" class="key-input" placeholder="enter license key (e.g. rust-xxxx-xxxx)">
-            <button class="btn-redeem" id="redeem-key-btn">redeem key</button>
+            <button class="btn-redeem" id="redeem-key-btn">bind to account</button>
           </div>
           <div id="key-feedback" class="key-feedback"></div>
-          <div class="keys-list" id="active-keys-list">
-            <!-- dynamically populated -->
-          </div>
         </div>
       </div>
     </section>
@@ -711,6 +735,53 @@
           <span id="cart-total-price">$0.00</span>
         </div>
         <button class="btn-checkout" id="checkout-btn">proceed to checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- square checkout modal -->
+  <div class="modal-backdrop" id="checkout-modal">
+    <div class="checkout-modal-card">
+      <div class="modal-header">
+        <div class="checkout-header-titles">
+          <h3 class="modal-title">checkout</h3>
+          <span class="square-badge">powered by square</span>
+        </div>
+        <button class="modal-close-btn" id="close-checkout-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="checkout-body">
+        <div class="order-summary-box">
+          <div class="summary-heading">order summary</div>
+          <div id="checkout-items-list" class="checkout-items-list">
+            <!-- populated from cart -->
+          </div>
+          <div class="checkout-total-row">
+            <span>total amount</span>
+            <span id="checkout-total-price" class="total-amount">$0.00</span>
+          </div>
+        </div>
+
+        <div class="checkout-account-box">
+          <label for="checkout-email" class="checkout-label">delivery email <span class="required-star">*</span></label>
+          <p class="checkout-hint">keys will be saved directly in your account database under this email.</p>
+          <input type="email" id="checkout-email" class="form-input" placeholder="you@domain.com" required>
+        </div>
+
+        <div id="checkout-feedback" class="auth-feedback"></div>
+
+        <div class="checkout-payment-box">
+          <button class="btn-primary pay-square-btn" id="pay-square-btn">
+            <svg class="square-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><rect width="8" height="8" x="8" y="8" rx="1"/></svg>
+            <span>pay with square</span>
+          </button>
+          <p class="secure-notice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            encrypted secure square payment processing. keys stored in your account upon completion.
+          </p>
+        </div>
       </div>
     </div>
   </div>

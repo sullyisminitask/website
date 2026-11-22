@@ -146,7 +146,7 @@ switch ($action) {
         $_SESSION['username'] = $user['username'];
 
         // Fetch user keys
-        $keysStmt = $pdo->prepare('SELECT id, license_key, product, status, created_at FROM user_keys WHERE user_id = ? ORDER BY id DESC');
+        $keysStmt = $pdo->prepare('SELECT id, license_key, product, plan, order_id, status, created_at FROM user_keys WHERE user_id = ? ORDER BY id DESC');
         $keysStmt->execute([$user['id']]);
         $keys = $keysStmt->fetchAll();
 
@@ -177,7 +177,7 @@ switch ($action) {
         }
 
         // Fetch user keys
-        $keysStmt = $pdo->prepare('SELECT id, license_key, product, status, created_at FROM user_keys WHERE user_id = ? ORDER BY id DESC');
+        $keysStmt = $pdo->prepare('SELECT id, license_key, product, plan, order_id, status, created_at FROM user_keys WHERE user_id = ? ORDER BY id DESC');
         $keysStmt->execute([$userId]);
         $keys = $keysStmt->fetchAll();
 

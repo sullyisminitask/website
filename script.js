@@ -245,26 +245,130 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // my keys logic
+  // my keys logic & database synchronization
   const redeemBtn = document.getElementById('redeem-key-btn');
   const keyInput = document.getElementById('license-key-input');
   const keyFeedback = document.getElementById('key-feedback');
   const activeKeysList = document.getElementById('active-keys-list');
+  const keysCountBadge = document.getElementById('keys-count-badge');
+  const keysAccountStatus = document.getElementById('keys-account-status');
+  const keysSyncBtn = document.getElementById('keys-sync-btn');
 
-  function addKeyToUI(key, statusText) {
+  // Local fallback keys for guest purchases
+  let guestKeys = [];
+  try {
+    guestKeys = JSON.parse(localStorage.getItem('guest_keys') || '[]');
+  } catch (e) {
+    guestKeys = [];
+  }
+
+  function copyToClipboard(text, btnElement) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btnElement.textContent;
+        btnElement.textContent = 'copied!';
+        setTimeout(() => { btnElement.textContent = orig; }, 1800);
+      }).catch(() => fallbackCopy(text, btnElement));
+    } else {
+      fallbackCopy(text, btnElement);
+    }
+  }
+
+  function fallbackCopy(text, btnElement) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      const orig = btnElement.textContent;
+      btnElement.textContent = 'copied!';
+      setTimeout(() => { btnElement.textContent = orig; }, 1800);
+    } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  function renderMyKeys() {
     if (!activeKeysList) return;
-    const item = document.createElement('div');
-    item.className = 'key-item';
-    item.innerHTML = `
-      <div class="key-value">${key}</div>
-      <div class="key-status">${statusText}</div>
-    `;
-    activeKeysList.prepend(item);
+
+    // Keys to display: user's database keys if logged in, plus any guest keys
+    let keysToDisplay = [];
+    if (currentUser && currentUser.keys && currentUser.keys.length > 0) {
+      keysToDisplay = [...currentUser.keys];
+    } else if (guestKeys.length > 0) {
+      keysToDisplay = [...guestKeys];
+    }
+
+    if (keysCountBadge) {
+      keysCountBadge.textContent = `${keysToDisplay.length} key${keysToDisplay.length === 1 ? '' : 's'}`;
+    }
+
+    if (keysAccountStatus) {
+      if (currentUser) {
+        keysAccountStatus.textContent = `account: ${currentUser.email} • persistent database storage`;
+        if (keysSyncBtn) keysSyncBtn.textContent = 'view profile';
+      } else {
+        keysAccountStatus.textContent = `not signed in — keys bought as guest are stored locally. log in to sync.`;
+        if (keysSyncBtn) keysSyncBtn.textContent = 'sign in / register';
+      }
+    }
+
+    if (keysToDisplay.length === 0) {
+      activeKeysList.innerHTML = `
+        <div class="empty-keys-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+          <p>no license keys found in this account.</p>
+          <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
+        </div>
+      `;
+      const browseBtn = activeKeysList.querySelector('[data-action="go-shop"]');
+      if (browseBtn) {
+        browseBtn.addEventListener('click', () => switchView('shop'));
+      }
+      return;
+    }
+
+    activeKeysList.innerHTML = '';
+    keysToDisplay.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'key-card-item';
+      const keyVal = item.license_key || item.key || '';
+      const prodName = item.product || 'rust elite';
+      const planName = item.plan || '1 day';
+      const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'recent';
+      const statusStr = item.status || 'undetected - active';
+
+      card.innerHTML = `
+        <div class="key-card-top">
+          <div class="key-card-product">
+            <span class="key-product-name">${prodName}</span>
+            <span class="key-plan-pill">${planName}</span>
+          </div>
+          <span class="key-status-badge">${statusStr}</span>
+        </div>
+        <div class="key-card-middle">
+          <span class="key-card-code">${keyVal}</span>
+          <button class="btn-copy-key">copy key</button>
+        </div>
+        <div class="key-card-date">purchased / bound: ${dateStr}</div>
+      `;
+
+      const copyBtn = card.querySelector('.btn-copy-key');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => copyToClipboard(keyVal, copyBtn));
+      }
+
+      activeKeysList.appendChild(card);
+    });
+  }
+
+  if (keysSyncBtn) {
+    keysSyncBtn.addEventListener('click', openAccountModal);
   }
 
   if (redeemBtn && keyInput) {
     redeemBtn.addEventListener('click', async () => {
-      const key = keyInput.value.trim().toLowerCase();
+      const key = keyInput.value.trim().toUpperCase();
       if (!key) {
         if (keyFeedback) {
           keyFeedback.className = 'key-feedback error';
@@ -281,14 +385,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const data = await res.json();
         if (data.success) {
-          addKeyToUI(key, 'undetected - active');
           if (keyFeedback) {
             keyFeedback.className = 'key-feedback success';
-            keyFeedback.textContent = data.message || 'key activated successfully';
+            keyFeedback.textContent = data.message || 'key bound successfully!';
           }
           keyInput.value = '';
           if (currentUser) {
             checkAuthSession();
+          } else {
+            guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', created_at: new Date().toISOString() });
+            localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
+            renderMyKeys();
           }
         } else {
           if (keyFeedback) {
@@ -297,11 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } catch (err) {
-        // Fallback offline UI behavior
-        addKeyToUI(key, 'undetected - active');
+        guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', created_at: new Date().toISOString() });
+        localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
+        renderMyKeys();
         if (keyFeedback) {
           keyFeedback.className = 'key-feedback success';
-          keyFeedback.textContent = 'key activated locally';
+          keyFeedback.textContent = 'key stored locally';
         }
         keyInput.value = '';
       }
@@ -399,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'profile-key-card';
             card.innerHTML = `
               <span class="profile-key-code">${k.license_key}</span>
-              <span class="profile-key-tag">${k.product || 'rust elite'}</span>
+              <span class="profile-key-tag">${k.product || 'rust elite'} (${k.plan || '1 day'})</span>
             `;
             profileKeysList.appendChild(card);
           });
@@ -417,6 +525,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authFormsContainer) authFormsContainer.style.display = 'block';
       if (authProfileContainer) authProfileContainer.style.display = 'none';
     }
+
+    // Refresh My Keys view with account keys
+    renderMyKeys();
   }
 
   // Check existing session
@@ -528,6 +639,185 @@ document.addEventListener('DOMContentLoaded', () => {
       updateAuthUI(null);
       closeAccountModal();
     });
+  }
+
+  // Square Checkout Modal Controller
+  const checkoutModal = document.getElementById('checkout-modal');
+  const closeCheckoutBtn = document.getElementById('close-checkout-btn');
+  const checkoutItemsList = document.getElementById('checkout-items-list');
+  const checkoutTotalPrice = document.getElementById('checkout-total-price');
+  const checkoutEmail = document.getElementById('checkout-email');
+  const paySquareBtn = document.getElementById('pay-square-btn');
+  const checkoutFeedback = document.getElementById('checkout-feedback');
+
+  function openCheckoutModal() {
+    if (cart.length === 0) {
+      alert('your cart is empty. select a plan first.');
+      return;
+    }
+
+    closeCart();
+
+    // Populate checkout items
+    if (checkoutItemsList) {
+      checkoutItemsList.innerHTML = '';
+      let total = 0;
+      cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        const row = document.createElement('div');
+        row.className = 'checkout-item-row';
+        row.innerHTML = `
+          <span class="checkout-item-title">${item.name} (${item.plan}) × ${item.quantity}</span>
+          <span class="checkout-item-price">$${itemTotal.toFixed(2)}</span>
+        `;
+        checkoutItemsList.appendChild(row);
+      });
+      if (checkoutTotalPrice) {
+        checkoutTotalPrice.textContent = `$${total.toFixed(2)}`;
+      }
+    }
+
+    // Pre-fill email if logged in
+    if (checkoutEmail) {
+      if (currentUser && currentUser.email) {
+        checkoutEmail.value = currentUser.email;
+      } else if (!checkoutEmail.value) {
+        checkoutEmail.value = '';
+      }
+    }
+
+    if (checkoutFeedback) {
+      checkoutFeedback.textContent = '';
+      checkoutFeedback.className = 'auth-feedback';
+    }
+
+    if (checkoutModal) {
+      checkoutModal.classList.add('active');
+    }
+  }
+
+  function closeCheckoutModal() {
+    if (checkoutModal) {
+      checkoutModal.classList.remove('active');
+    }
+  }
+
+  if (checkoutBtn) {
+    // Intercept checkout button to open Square Checkout modal
+    checkoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openCheckoutModal();
+    });
+  }
+
+  if (closeCheckoutBtn) {
+    closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
+  }
+
+  if (checkoutModal) {
+    checkoutModal.addEventListener('click', (e) => {
+      if (e.target === checkoutModal) closeCheckoutModal();
+    });
+  }
+
+  if (paySquareBtn) {
+    paySquareBtn.addEventListener('click', async () => {
+      const email = (checkoutEmail ? checkoutEmail.value.trim().toLowerCase() : '');
+      if (!email) {
+        if (checkoutFeedback) {
+          checkoutFeedback.className = 'auth-feedback error';
+          checkoutFeedback.textContent = 'please enter an email address for key delivery.';
+        }
+        return;
+      }
+
+      if (!email.includes('@') || !email.includes('.')) {
+        if (checkoutFeedback) {
+          checkoutFeedback.className = 'auth-feedback error';
+          checkoutFeedback.textContent = 'please enter a valid email address.';
+        }
+        return;
+      }
+
+      const origBtnHtml = paySquareBtn.innerHTML;
+      paySquareBtn.disabled = true;
+      paySquareBtn.innerHTML = `
+        <svg class="square-icon animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+        <span>connecting to square...</span>
+      `;
+
+      try {
+        const res = await fetch('api/square.php?action=create_checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart, email: email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // If a hosted Square Checkout URL is returned, redirect to Square
+          if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+            return;
+          }
+
+          // Instant completion (sandbox / simulated direct checkout)
+          cart = [];
+          localStorage.removeItem('cart');
+          updateCartUI();
+
+          // Save keys locally as guest backup if not logged in
+          if (data.keys && data.keys.length > 0) {
+            data.keys.forEach(k => {
+              guestKeys.unshift(k);
+            });
+            localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
+          }
+
+          // Re-fetch user session so newly assigned keys appear in account
+          await checkAuthSession();
+
+          closeCheckoutModal();
+          switchView('my-keys');
+
+          const keyFeedbackElem = document.getElementById('key-feedback');
+          if (keyFeedbackElem) {
+            keyFeedbackElem.className = 'key-feedback success';
+            keyFeedbackElem.textContent = 'payment successful via square! your license keys are saved in your account below.';
+          }
+        } else {
+          if (checkoutFeedback) {
+            checkoutFeedback.className = 'auth-feedback error';
+            checkoutFeedback.textContent = data.message || 'square payment failed. please try again.';
+          }
+        }
+      } catch (err) {
+        if (checkoutFeedback) {
+          checkoutFeedback.className = 'auth-feedback error';
+          checkoutFeedback.textContent = 'network error contacting square api. please try again.';
+        }
+      } finally {
+        paySquareBtn.disabled = false;
+        paySquareBtn.innerHTML = origBtnHtml;
+      }
+    });
+  }
+
+  // Check URL parameters for return from Square payment link
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('payment_success') === '1') {
+    cart = [];
+    localStorage.removeItem('cart');
+    updateCartUI();
+    checkAuthSession();
+    switchView('my-keys');
+    const keyFeedbackElem = document.getElementById('key-feedback');
+    if (keyFeedbackElem) {
+      keyFeedbackElem.className = 'key-feedback success';
+      keyFeedbackElem.textContent = 'payment confirmed by square! your license keys are listed below.';
+    }
   }
 
   // Initialize session check
