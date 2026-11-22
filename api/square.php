@@ -69,11 +69,12 @@ try {
     jsonResponse(false, 'Database error: ' . $e->getMessage(), [], 500);
 }
 
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
-$input = getJsonInput();
-$squareConfig = getSquareConfig();
+try {
+    $action = $_GET['action'] ?? $_POST['action'] ?? '';
+    $input = getJsonInput();
+    $squareConfig = getSquareConfig();
 
-switch ($action) {
+    switch ($action) {
     case 'config':
         // Return public Square Application ID & Environment for frontend SDK
         jsonResponse(true, 'Square configuration', [
@@ -274,4 +275,7 @@ switch ($action) {
     default:
         jsonResponse(false, 'Invalid action. Supported: config, create_checkout, callback.', [], 400);
         break;
+    }
+} catch (Throwable $e) {
+    jsonResponse(false, 'Checkout error: ' . $e->getMessage(), [], 500);
 }

@@ -55,9 +55,36 @@ function getDatabaseConnection(): PDO {
     // Initial table creation if new database
     if ($isNew || filesize($dbFile) === 0) {
         initializeDatabase($pdo);
+    } else {
+        ensureSchemaUpdated($pdo);
     }
 
     return $pdo;
+}
+
+function ensureSchemaUpdated(PDO $pdo): void {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            order_id VARCHAR(100) UNIQUE NOT NULL,
+            square_order_id VARCHAR(100) DEFAULT NULL,
+            square_payment_id VARCHAR(100) DEFAULT NULL,
+            amount DECIMAL(10, 2) NOT NULL,
+            currency VARCHAR(10) DEFAULT 'USD',
+            status VARCHAR(50) DEFAULT 'completed',
+            items TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    ");
+
+    try {
+        $pdo->exec("ALTER TABLE user_keys ADD COLUMN plan VARCHAR(100) DEFAULT '1 day'");
+    } catch (Throwable $e) {}
+
+    try {
+        $pdo->exec("ALTER TABLE user_keys ADD COLUMN order_id VARCHAR(100) DEFAULT NULL");
+    } catch (Throwable $e) {}
 }
 
 function initializeDatabase(PDO $pdo): void {
