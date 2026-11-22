@@ -36,6 +36,10 @@
         </button>
       </nav>
       <div class="banner-right">
+        <button class="account-btn" id="open-account-btn" title="account">
+          <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="account-btn-label" id="account-btn-text">account</span>
+        </button>
         <button class="cart-btn" id="open-cart-btn" title="cart">
           <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
           <span class="cart-count" id="cart-counter">0</span>
@@ -611,6 +615,83 @@
       </div>
     </section>
   </main>
+
+  <!-- account modal -->
+  <div class="modal-backdrop" id="account-modal">
+    <div class="account-modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="account-modal-title">account</h3>
+        <button class="modal-close-btn" id="close-account-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- logged out: auth view -->
+      <div id="auth-forms-container" class="auth-forms-container">
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="tab-btn-login">log in</button>
+          <button class="auth-tab-btn" id="tab-btn-register">create account</button>
+        </div>
+
+        <div id="auth-feedback" class="auth-feedback"></div>
+
+        <!-- login form -->
+        <form id="login-form" class="auth-form active">
+          <div class="form-group">
+            <label for="login-email">email address</label>
+            <input type="email" id="login-email" class="form-input" placeholder="you@domain.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="login-password">password</label>
+            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-primary form-submit-btn" id="login-submit-btn">log in</button>
+        </form>
+
+        <!-- register form -->
+        <form id="register-form" class="auth-form">
+          <div class="form-group">
+            <label for="register-email">email address <span class="required-star">*</span></label>
+            <input type="email" id="register-email" class="form-input" placeholder="you@domain.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="register-password">password <span class="required-star">*</span> (min 6 chars)</label>
+            <input type="password" id="register-password" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="register-confirm-password">confirm password <span class="required-star">*</span></label>
+            <input type="password" id="register-confirm-password" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn-primary form-submit-btn" id="register-submit-btn">create account</button>
+        </form>
+      </div>
+
+      <!-- logged in: profile view -->
+      <div id="auth-profile-container" class="auth-profile-container" style="display: none;">
+        <div class="profile-header-card">
+          <div class="profile-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-details">
+            <div class="profile-email" id="profile-email-display">user@domain.com</div>
+            <div class="profile-meta">member since <span id="profile-created-display"></span></div>
+          </div>
+        </div>
+
+        <div class="profile-keys-section">
+          <div class="section-title">your license keys</div>
+          <div class="profile-keys-list" id="profile-keys-list">
+            <div class="empty-keys-msg">no active license keys registered yet.</div>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button class="btn-secondary logout-btn" id="logout-btn">log out</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- cart modal / drawer -->
   <div class="modal-backdrop" id="cart-modal">

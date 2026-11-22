@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (redeemBtn && keyInput) {
-    redeemBtn.addEventListener('click', () => {
+    redeemBtn.addEventListener('click', async () => {
       const key = keyInput.value.trim().toLowerCase();
       if (!key) {
         if (keyFeedback) {
@@ -272,14 +272,266 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return;
       }
-      addKeyToUI(key, 'undetected - active');
-      if (keyFeedback) {
-        keyFeedback.className = 'key-feedback success';
-        keyFeedback.textContent = 'key activated successfully';
+
+      try {
+        const res = await fetch('api/auth.php?action=redeem_key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ license_key: key, product: 'rust elite' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          addKeyToUI(key, 'undetected - active');
+          if (keyFeedback) {
+            keyFeedback.className = 'key-feedback success';
+            keyFeedback.textContent = data.message || 'key activated successfully';
+          }
+          keyInput.value = '';
+          if (currentUser) {
+            checkAuthSession();
+          }
+        } else {
+          if (keyFeedback) {
+            keyFeedback.className = 'key-feedback error';
+            keyFeedback.textContent = data.message || 'could not activate key';
+          }
+        }
+      } catch (err) {
+        // Fallback offline UI behavior
+        addKeyToUI(key, 'undetected - active');
+        if (keyFeedback) {
+          keyFeedback.className = 'key-feedback success';
+          keyFeedback.textContent = 'key activated locally';
+        }
+        keyInput.value = '';
       }
-      keyInput.value = '';
     });
   }
+
+  // Account & Authentication system
+  let currentUser = null;
+  const accountModal = document.getElementById('account-modal');
+  const openAccountBtn = document.getElementById('open-account-btn');
+  const closeAccountBtn = document.getElementById('close-account-btn');
+  const accountBtnText = document.getElementById('account-btn-text');
+  const authFeedback = document.getElementById('auth-feedback');
+
+  const tabBtnLogin = document.getElementById('tab-btn-login');
+  const tabBtnRegister = document.getElementById('tab-btn-register');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const authFormsContainer = document.getElementById('auth-forms-container');
+  const authProfileContainer = document.getElementById('auth-profile-container');
+  const profileEmailDisplay = document.getElementById('profile-email-display');
+  const profileCreatedDisplay = document.getElementById('profile-created-display');
+  const profileKeysList = document.getElementById('profile-keys-list');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  function showFeedback(msg, isError = true) {
+    if (!authFeedback) return;
+    authFeedback.textContent = msg;
+    authFeedback.className = 'auth-feedback ' + (isError ? 'error' : 'success');
+  }
+
+  function clearFeedback() {
+    if (!authFeedback) return;
+    authFeedback.textContent = '';
+    authFeedback.className = 'auth-feedback';
+  }
+
+  function openAccountModal() {
+    clearFeedback();
+    if (accountModal) accountModal.classList.add('active');
+  }
+
+  function closeAccountModal() {
+    clearFeedback();
+    if (accountModal) accountModal.classList.remove('active');
+  }
+
+  if (openAccountBtn) openAccountBtn.addEventListener('click', openAccountModal);
+  if (closeAccountBtn) closeAccountBtn.addEventListener('click', closeAccountModal);
+  if (accountModal) {
+    accountModal.addEventListener('click', (e) => {
+      if (e.target === accountModal) closeAccountModal();
+    });
+  }
+
+  // Switch tabs between login and register
+  if (tabBtnLogin && tabBtnRegister) {
+    tabBtnLogin.addEventListener('click', () => {
+      tabBtnLogin.classList.add('active');
+      tabBtnRegister.classList.remove('active');
+      loginForm.classList.add('active');
+      registerForm.classList.remove('active');
+      clearFeedback();
+    });
+
+    tabBtnRegister.addEventListener('click', () => {
+      tabBtnRegister.classList.add('active');
+      tabBtnLogin.classList.remove('active');
+      registerForm.classList.add('active');
+      loginForm.classList.remove('active');
+      clearFeedback();
+    });
+  }
+
+  function updateAuthUI(user) {
+    currentUser = user;
+    if (user) {
+      if (accountBtnText) {
+        accountBtnText.textContent = user.username || user.email.split('@')[0];
+      }
+      if (openAccountBtn) {
+        openAccountBtn.classList.add('logged-in');
+      }
+      if (authFormsContainer) authFormsContainer.style.display = 'none';
+      if (authProfileContainer) authProfileContainer.style.display = 'block';
+
+      if (profileEmailDisplay) profileEmailDisplay.textContent = user.email;
+      if (profileCreatedDisplay) profileCreatedDisplay.textContent = user.created_at ? user.created_at.split(' ')[0] : 'today';
+
+      if (profileKeysList) {
+        profileKeysList.innerHTML = '';
+        if (user.keys && user.keys.length > 0) {
+          user.keys.forEach(k => {
+            const card = document.createElement('div');
+            card.className = 'profile-key-card';
+            card.innerHTML = `
+              <span class="profile-key-code">${k.license_key}</span>
+              <span class="profile-key-tag">${k.product || 'rust elite'}</span>
+            `;
+            profileKeysList.appendChild(card);
+          });
+        } else {
+          profileKeysList.innerHTML = '<div class="empty-keys-msg">no active license keys registered yet.</div>';
+        }
+      }
+    } else {
+      if (accountBtnText) {
+        accountBtnText.textContent = 'account';
+      }
+      if (openAccountBtn) {
+        openAccountBtn.classList.remove('logged-in');
+      }
+      if (authFormsContainer) authFormsContainer.style.display = 'block';
+      if (authProfileContainer) authProfileContainer.style.display = 'none';
+    }
+  }
+
+  // Check existing session
+  async function checkAuthSession() {
+    try {
+      const res = await fetch('api/auth.php?action=me');
+      const data = await res.json();
+      if (data.success && data.logged_in && data.user) {
+        updateAuthUI(data.user);
+      } else {
+        updateAuthUI(null);
+      }
+    } catch (err) {
+      updateAuthUI(null);
+    }
+  }
+
+  // Handle registration
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearFeedback();
+
+      const email = document.getElementById('register-email').value.trim().toLowerCase();
+      const password = document.getElementById('register-password').value;
+      const confirmPassword = document.getElementById('register-confirm-password').value;
+
+      if (!email || !password) {
+        showFeedback('email and password are required.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showFeedback('passwords do not match.');
+        return;
+      }
+
+      if (password.length < 6) {
+        showFeedback('password must be at least 6 characters.');
+        return;
+      }
+
+      try {
+        const res = await fetch('api/auth.php?action=register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, confirm_password: confirmPassword })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showFeedback('account created successfully!', false);
+          registerForm.reset();
+          setTimeout(() => {
+            updateAuthUI(data.user);
+          }, 600);
+        } else {
+          showFeedback(data.message || 'registration failed.');
+        }
+      } catch (err) {
+        showFeedback('connection error. check server setup.');
+      }
+    });
+  }
+
+  // Handle login
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearFeedback();
+
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) {
+        showFeedback('please enter both email and password.');
+        return;
+      }
+
+      try {
+        const res = await fetch('api/auth.php?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showFeedback('welcome back!', false);
+          loginForm.reset();
+          setTimeout(() => {
+            updateAuthUI(data.user);
+          }, 500);
+        } else {
+          showFeedback(data.message || 'invalid email or password.');
+        }
+      } catch (err) {
+        showFeedback('connection error. check server setup.');
+      }
+    });
+  }
+
+  // Handle logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await fetch('api/auth.php?action=logout', { method: 'POST' });
+      } catch (err) {}
+      updateAuthUI(null);
+      closeAccountModal();
+    });
+  }
+
+  // Initialize session check
+  checkAuthSession();
 
   // check initial route
   const hash = window.location.hash.replace('#', '');
