@@ -1,7 +1,7 @@
 <?php
 /**
  * Square Payments Integration & Key Generation Endpoint
- * Handles Square Checkout Payment Links, Web Payments processing, and instant key issuance
+ * Handles Square Payment Links, Order Verification, Callback Redirects, and Key Issuance
  */
 
 header('Content-Type: application/json; charset=UTF-8');
@@ -48,25 +48,134 @@ function getSquareConfig(): array {
         }
     }
     return [
-        'environment' => 'sandbox', // 'sandbox' or 'production'
-        'application_id' => '',
-        'access_token' => '',
-        'location_id' => ''
+        'environment' => getenv('SQUARE_ENVIRONMENT') ?: 'sandbox',
+        'application_id' => getenv('SQUARE_APPLICATION_ID') ?: '',
+        'access_token' => getenv('SQUARE_ACCESS_TOKEN') ?: '',
+        'location_id' => getenv('SQUARE_LOCATION_ID') ?: '',
+        'currency' => getenv('SQUARE_CURRENCY') ?: 'USD'
     ];
 }
 
-function generateLicenseKey(string $product = 'RUST-ELITE'): string {
-    $prefix = strtoupper(str_replace(' ', '-', $product));
-    $p1 = strtoupper(bin2hex(random_bytes(2)));
-    $p2 = strtoupper(bin2hex(random_bytes(2)));
-    $p3 = strtoupper(bin2hex(random_bytes(2)));
+function isRealCredential(string $val): bool {
+    $v = trim($val);
+    if ($v === '') return false;
+    if (stripos($v, 'YOUR_SQUARE_') !== false) return false;
+    return true;
+}
+
+function squareApiBase(string $env): string {
+    return strtolower($env) === 'production'
+        ? 'https://connect.squareup.com'
+        : 'https://connect.squareupsandbox.com';
+}
+
+function callSquareApi(string $method, string $url, string $accessToken, ?array $payload = null): array {
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Square-Version: 2024-11-20',
+        "Authorization: Bearer {$accessToken}",
+        'Content-Type: application/json'
+    ]);
+    if (strtoupper($method) === 'POST') {
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload ?? []));
+    }
+    $res = curl_exec($ch);
+    $curlErr = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $data = is_string($res) ? json_decode($res, true) : null;
+    return [
+        'http_code' => $httpCode,
+        'error' => $curlErr,
+        'data' => is_array($data) ? $data : []
+    ];
+}
+
+function generateLicenseKey(string $product = 'rust-elite'): string {
+    $prefix = strtolower(str_replace(' ', '-', trim($product)));
+    $p1 = bin2hex(random_bytes(2));
+    $p2 = bin2hex(random_bytes(2));
+    $p3 = bin2hex(random_bytes(2));
     return "{$prefix}-{$p1}-{$p2}-{$p3}";
+}
+
+function getServerPlanPrice(string $plan): ?float {
+    $catalog = [
+        '1 day' => 7.99,
+        '3 day' => 16.99,
+        'week' => 25.99,
+        'month' => 54.99,
+        '3 month' => 139.99,
+    ];
+    $key = strtolower(trim($plan));
+    return $catalog[$key] ?? null;
+}
+
+function issueKeysForOrder(PDO $pdo, array $order): array {
+    $items = json_decode($order['items'], true) ?: [];
+    $userId = (int)$order['user_id'];
+    $orderId = $order['order_id'];
+    $generatedKeys = [];
+
+    foreach ($items as $item) {
+        $product = $item['product'] ?? $item['name'] ?? 'rust elite';
+        $plan = $item['plan'] ?? '1 day';
+        $qty = intval($item['quantity'] ?? 1);
+        if ($qty < 1) $qty = 1;
+
+        for ($i = 0; $i < $qty; $i++) {
+            $key = generateLicenseKey($product);
+            $keyStmt = $pdo->prepare('INSERT INTO user_keys (user_id, license_key, product, plan, order_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
+            $keyStmt->execute([$userId, $key, $product, $plan, $orderId, 'active']);
+            $generatedKeys[] = [
+                'license_key' => $key,
+                'product' => $product,
+                'plan' => $plan,
+                'order_id' => $orderId,
+                'status' => 'active'
+            ];
+        }
+    }
+
+    $upd = $pdo->prepare('UPDATE orders SET status = "completed" WHERE order_id = ?');
+    $upd->execute([$orderId]);
+
+    return $generatedKeys;
+}
+
+function verifySquareOrderPaid(array $squareConfig, ?string $squareOrderId): array {
+    $accessToken = trim($squareConfig['access_token'] ?? '');
+    if (!isRealCredential($accessToken) || empty($squareOrderId)) {
+        return ['paid' => false, 'reason' => 'missing square order id or access token'];
+    }
+
+    $url = squareApiBase($squareConfig['environment'] ?? 'sandbox') . '/v2/orders/' . urlencode($squareOrderId);
+    $resp = callSquareApi('GET', $url, $accessToken);
+    if ($resp['http_code'] < 200 || $resp['http_code'] >= 300) {
+        return ['paid' => false, 'reason' => 'square order lookup failed'];
+    }
+
+    $order = $resp['data']['order'] ?? [];
+    $state = strtoupper($order['state'] ?? '');
+    $tenders = $order['tenders'] ?? [];
+    $netDue = isset($order['net_amount_due_money']['amount']) ? intval($order['net_amount_due_money']['amount']) : null;
+
+    if ($state === 'COMPLETED' || (!empty($tenders) && ($netDue === null || $netDue <= 0))) {
+        $paymentId = $tenders[0]['payment_id'] ?? ($tenders[0]['id'] ?? null);
+        return ['paid' => true, 'payment_id' => $paymentId];
+    }
+
+    return ['paid' => false, 'reason' => 'payment not yet completed on square'];
 }
 
 try {
     $pdo = getDatabaseConnection();
 } catch (Throwable $e) {
-    jsonResponse(false, 'Database error: ' . $e->getMessage(), [], 500);
+    jsonResponse(false, 'database error: ' . $e->getMessage(), [], 500);
 }
 
 try {
@@ -74,44 +183,47 @@ try {
     $input = getJsonInput();
     $squareConfig = getSquareConfig();
 
+    $accessToken = trim($squareConfig['access_token'] ?? '');
+    $locationId = trim($squareConfig['location_id'] ?? '');
+    $appId = trim($squareConfig['application_id'] ?? '');
+    $currency = strtoupper(trim($squareConfig['currency'] ?? 'USD'));
+    $isSquareConfigured = isRealCredential($accessToken) && isRealCredential($locationId);
+
     switch ($action) {
     case 'config':
-        // Return public Square Application ID & Environment for frontend SDK
-        jsonResponse(true, 'Square configuration', [
-            'application_id' => $squareConfig['application_id'] ?? '',
-            'location_id' => $squareConfig['location_id'] ?? '',
+        jsonResponse(true, 'square configuration', [
+            'application_id' => isRealCredential($appId) ? $appId : '',
+            'location_id' => isRealCredential($locationId) ? $locationId : '',
             'environment' => $squareConfig['environment'] ?? 'sandbox',
-            'configured' => !empty($squareConfig['access_token']) && !empty($squareConfig['location_id'])
+            'currency' => $currency,
+            'configured' => $isSquareConfigured
         ]);
         break;
 
     case 'create_checkout':
-        // Creates a Square Payment Link (hosted checkout page)
         $items = $input['items'] ?? [];
         if (empty($items) || !is_array($items)) {
-            jsonResponse(false, 'Cart is empty.', [], 400);
+            jsonResponse(false, 'cart is empty.', [], 400);
         }
 
         $userId = $_SESSION['user_id'] ?? null;
         $customerEmail = trim(strtolower($input['email'] ?? ($_SESSION['user_email'] ?? '')));
 
         if (!$userId && empty($customerEmail)) {
-            jsonResponse(false, 'Please log in or enter an email address so keys can be delivered to your account.', [], 400);
+            jsonResponse(false, 'please log in or enter an email address so keys can be delivered to your account.', [], 400);
         }
 
-        // If user not logged in but provided email, find or create user account
         if (!$userId && !empty($customerEmail)) {
             if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
-                jsonResponse(false, 'Please provide a valid email address.', [], 400);
+                jsonResponse(false, 'please provide a valid email address.', [], 400);
             }
-            $stmt = $pdo->prepare('SELECT id, email FROM users WHERE email = ? LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, email, username FROM users WHERE email = ? LIMIT 1');
             $stmt->execute([$customerEmail]);
             $existing = $stmt->fetch();
             if ($existing) {
                 $userId = (int)$existing['id'];
             } else {
-                // Auto-create account with random secure password
-                $tempPassword = bin2hex(random_bytes(6));
+                $tempPassword = bin2hex(random_bytes(8));
                 $hash = password_hash($tempPassword, PASSWORD_BCRYPT);
                 $uName = explode('@', $customerEmail)[0];
                 $createStmt = $pdo->prepare('INSERT INTO users (email, username, password_hash, role, created_at, last_login) VALUES (?, ?, ?, ?, datetime("now"), datetime("now"))');
@@ -123,43 +235,46 @@ try {
             }
         }
 
-        $orderId = 'ORD-' . strtoupper(bin2hex(random_bytes(4)));
+        $orderId = 'ord-' . bin2hex(random_bytes(4));
         $totalCents = 0;
         $lineItems = [];
+        $normalizedItems = [];
 
         foreach ($items as $item) {
-            $name = $item['name'] ?? 'rust elite';
-            $plan = $item['plan'] ?? '1 day';
-            $price = floatval($item['price'] ?? 7.99);
+            $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'rust elite'));
+            $plan = strtolower(trim($item['plan'] ?? '1 day'));
+            $serverPrice = getServerPlanPrice($plan);
+            if ($serverPrice === null) {
+                jsonResponse(false, "invalid plan selected: {$plan}.", [], 400);
+            }
             $qty = intval($item['quantity'] ?? 1);
             if ($qty < 1) $qty = 1;
 
-            $itemCents = intval(round($price * 100));
+            $itemCents = intval(round($serverPrice * 100));
             $totalCents += ($itemCents * $qty);
+
+            $normalizedItems[] = [
+                'product' => $name,
+                'plan' => $plan,
+                'price' => $serverPrice,
+                'quantity' => $qty
+            ];
 
             $lineItems[] = [
                 'name' => "{$name} ({$plan})",
                 'quantity' => (string)$qty,
                 'base_price_money' => [
                     'amount' => $itemCents,
-                    'currency' => 'USD'
+                    'currency' => $currency
                 ]
             ];
         }
 
-        // Check if Square Access Token and Location ID are configured
-        $accessToken = trim($squareConfig['access_token'] ?? '');
-        $locationId = trim($squareConfig['location_id'] ?? '');
-
-        if (!empty($accessToken) && !empty($locationId)) {
-            // Call Square Payment Links API
-            $isProd = ($squareConfig['environment'] ?? 'sandbox') === 'production';
-            $squareEndpoint = $isProd 
-                ? 'https://connect.squareup.com/v2/online-checkout/payment-links'
-                : 'https://connect.squareupsandbox.com/v2/online-checkout/payment-links';
-
-            $host = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'chudcheats.xyz');
-            $redirectUrl = "{$host}/api/square.php?action=callback&order_id={$orderId}&uid={$userId}";
+        if ($isSquareConfigured) {
+            $squareEndpoint = squareApiBase($squareConfig['environment'] ?? 'sandbox') . '/v2/online-checkout/payment-links';
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+            $host = $_SERVER['HTTP_HOST'] ?? 'chudcheats.xyz';
+            $redirectUrl = "{$scheme}{$host}/api/square.php?action=callback&order_id={$orderId}&uid={$userId}";
 
             $squarePayload = [
                 'idempotency_key' => bin2hex(random_bytes(16)),
@@ -175,107 +290,141 @@ try {
                 'pre_populate_buyer_email' => $customerEmail
             ];
 
-            $ch = curl_init($squareEndpoint);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Square-Version: 2024-11-20",
-                "Authorization: Bearer {$accessToken}",
-                "Content-Type: application/json"
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($squarePayload));
-            $res = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            $resp = callSquareApi('POST', $squareEndpoint, $accessToken, $squarePayload);
 
-            $data = json_decode($res, true);
-            if ($httpCode >= 200 && $httpCode < 300 && !empty($data['payment_link']['url'])) {
-                // Record pending order
+            if ($resp['http_code'] >= 200 && $resp['http_code'] < 300 && !empty($resp['data']['payment_link']['url'])) {
+                $squareOrderId = $resp['data']['payment_link']['order_id'] ?? null;
                 $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, square_order_id, amount, currency, status, items, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime("now"))');
-                $orderStmt->execute([$userId, $orderId, $data['payment_link']['order_id'] ?? null, $totalCents / 100, 'USD', 'pending', json_encode($items)]);
+                $orderStmt->execute([$userId, $orderId, $squareOrderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems)]);
 
-                jsonResponse(true, 'Square checkout link created.', [
-                    'checkout_url' => $data['payment_link']['url'],
+                jsonResponse(true, 'square checkout link created.', [
+                    'checkout_url' => $resp['data']['payment_link']['url'],
                     'order_id' => $orderId
                 ]);
             }
+
+            $errDetail = $resp['data']['errors'][0]['detail'] ?? ($resp['error'] ?: 'square payment link creation failed.');
+            jsonResponse(false, 'square error: ' . strtolower($errDetail), [
+                'square_http' => $resp['http_code']
+            ], 502);
         }
 
-        // If credentials are not yet entered or for testing: Complete order and generate keys directly
-        $generatedKeys = [];
-        foreach ($items as $item) {
-            $product = $item['name'] ?? 'rust elite';
-            $plan = $item['plan'] ?? '1 day';
-            $qty = intval($item['quantity'] ?? 1);
-            if ($qty < 1) $qty = 1;
-
-            for ($i = 0; $i < $qty; $i++) {
-                $key = generateLicenseKey($product);
-                $keyStmt = $pdo->prepare('INSERT INTO user_keys (user_id, license_key, product, plan, order_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
-                $keyStmt->execute([$userId, $key, $product, $plan, $orderId, 'active']);
-
-                $generatedKeys[] = [
-                    'license_key' => $key,
-                    'product' => $product,
-                    'plan' => $plan,
-                    'status' => 'active'
-                ];
-            }
-        }
-
-        // Save completed order record
+        // Sandbox demo fallback ONLY when Square credentials have not been set in api/config.php
         $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, amount, currency, status, items, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
-        $orderStmt->execute([$userId, $orderId, $totalCents / 100, 'USD', 'completed', json_encode($items)]);
+        $orderStmt->execute([$userId, $orderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems)]);
 
-        jsonResponse(true, 'Payment processed successfully! Your keys are ready in My Keys.', [
+        $createdOrder = [
+            'user_id' => $userId,
+            'order_id' => $orderId,
+            'items' => json_encode($normalizedItems)
+        ];
+        $generatedKeys = issueKeysForOrder($pdo, $createdOrder);
+
+        jsonResponse(true, 'sandbox test order completed! add square credentials in api/config.php for live payments.', [
             'instant_completion' => true,
+            'sandbox_demo' => true,
             'order_id' => $orderId,
             'keys' => $generatedKeys,
             'user_id' => $userId
         ]);
         break;
 
+    case 'verify_order':
+        $orderId = trim($input['order_id'] ?? $_GET['order_id'] ?? '');
+        if (empty($orderId)) {
+            jsonResponse(false, 'order id is required.', [], 400);
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM orders WHERE order_id = ? LIMIT 1');
+        $stmt->execute([$orderId]);
+        $order = $stmt->fetch();
+        if (!$order) {
+            jsonResponse(false, 'order not found.', [], 404);
+        }
+
+        if ($order['status'] === 'completed') {
+            jsonResponse(true, 'order already completed.', ['status' => 'completed']);
+        }
+
+        if (!$isSquareConfigured) {
+            jsonResponse(false, 'square is not configured.', [], 400);
+        }
+
+        $verification = verifySquareOrderPaid($squareConfig, $order['square_order_id'] ?? null);
+        if ($verification['paid']) {
+            if (!empty($verification['payment_id'])) {
+                $pUpd = $pdo->prepare('UPDATE orders SET square_payment_id = ? WHERE order_id = ?');
+                $pUpd->execute([$verification['payment_id'], $orderId]);
+            }
+            $keys = issueKeysForOrder($pdo, $order);
+            jsonResponse(true, 'payment verified! license keys issued.', [
+                'status' => 'completed',
+                'keys' => $keys
+            ]);
+        }
+
+        jsonResponse(false, $verification['reason'], ['status' => 'pending']);
+        break;
+
     case 'callback':
-        // Handle redirect from Square Payment Link
         $orderId = trim($_GET['order_id'] ?? '');
         $userId = intval($_GET['uid'] ?? ($_SESSION['user_id'] ?? 0));
 
-        if (empty($orderId) || $userId <= 0) {
+        if (empty($orderId)) {
             header('Location: /#my-keys');
             exit;
         }
 
-        // Fetch existing order
-        $stmt = $pdo->prepare('SELECT id, status, items FROM orders WHERE order_id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT * FROM orders WHERE order_id = ? LIMIT 1');
         $stmt->execute([$orderId]);
         $order = $stmt->fetch();
 
-        if ($order && $order['status'] !== 'completed') {
-            $items = json_decode($order['items'], true) ?: [];
-            foreach ($items as $item) {
-                $product = $item['name'] ?? 'rust elite';
-                $plan = $item['plan'] ?? '1 day';
-                $qty = intval($item['quantity'] ?? 1);
-                if ($qty < 1) $qty = 1;
-
-                for ($i = 0; $i < $qty; $i++) {
-                    $key = generateLicenseKey($product);
-                    $keyStmt = $pdo->prepare('INSERT INTO user_keys (user_id, license_key, product, plan, order_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
-                    $keyStmt->execute([$userId, $key, $product, $plan, $orderId, 'active']);
-                }
-            }
-
-            $upd = $pdo->prepare('UPDATE orders SET status = "completed" WHERE order_id = ?');
-            $upd->execute([$orderId]);
+        if (!$order) {
+            header('Location: /#my-keys');
+            exit;
         }
 
-        header('Location: /#my-keys?payment_success=1&order=' . urlencode($orderId));
+        // Restore session for the purchasing user if missing so keys show right away
+        if (empty($_SESSION['user_id']) && !empty($order['user_id'])) {
+            $uStmt = $pdo->prepare('SELECT id, email, username FROM users WHERE id = ? LIMIT 1');
+            $uStmt->execute([$order['user_id']]);
+            $uRow = $uStmt->fetch();
+            if ($uRow) {
+                $_SESSION['user_id'] = (int)$uRow['id'];
+                $_SESSION['user_email'] = $uRow['email'];
+                $_SESSION['username'] = $uRow['username'];
+            }
+        }
+
+        if ($order['status'] === 'completed') {
+            header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
+            exit;
+        }
+
+        if ($isSquareConfigured && !empty($order['square_order_id'])) {
+            $verification = verifySquareOrderPaid($squareConfig, $order['square_order_id']);
+            if ($verification['paid']) {
+                if (!empty($verification['payment_id'])) {
+                    $pUpd = $pdo->prepare('UPDATE orders SET square_payment_id = ? WHERE order_id = ?');
+                    $pUpd->execute([$verification['payment_id'], $orderId]);
+                }
+                issueKeysForOrder($pdo, $order);
+                header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
+                exit;
+            }
+
+            header('Location: /?payment_pending=1&order=' . urlencode($orderId) . '#my-keys');
+            exit;
+        }
+
+        issueKeysForOrder($pdo, $order);
+        header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
         exit;
 
     default:
-        jsonResponse(false, 'Invalid action. Supported: config, create_checkout, callback.', [], 400);
+        jsonResponse(false, 'invalid action. supported: config, create_checkout, verify_order, callback.', [], 400);
         break;
     }
 } catch (Throwable $e) {
-    jsonResponse(false, 'Checkout error: ' . $e->getMessage(), [], 500);
+    jsonResponse(false, 'checkout error: ' . $e->getMessage(), [], 500);
 }

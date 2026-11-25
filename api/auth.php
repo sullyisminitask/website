@@ -150,13 +150,19 @@ switch ($action) {
         $keysStmt->execute([$user['id']]);
         $keys = $keysStmt->fetchAll();
 
+        // Fetch user orders
+        $ordersStmt = $pdo->prepare('SELECT order_id, amount, currency, status, items, created_at FROM orders WHERE user_id = ? ORDER BY id DESC');
+        $ordersStmt->execute([$user['id']]);
+        $orders = $ordersStmt->fetchAll();
+
         jsonResponse(true, 'Logged in successfully.', [
             'user' => [
                 'id' => (int)$user['id'],
                 'email' => $user['email'],
                 'username' => $user['username'],
                 'created_at' => $user['created_at'],
-                'keys' => $keys
+                'keys' => $keys,
+                'orders' => $orders
             ]
         ]);
         break;
@@ -181,6 +187,11 @@ switch ($action) {
         $keysStmt->execute([$userId]);
         $keys = $keysStmt->fetchAll();
 
+        // Fetch user orders
+        $ordersStmt = $pdo->prepare('SELECT order_id, amount, currency, status, items, created_at FROM orders WHERE user_id = ? ORDER BY id DESC');
+        $ordersStmt->execute([$userId]);
+        $orders = $ordersStmt->fetchAll();
+
         jsonResponse(true, 'Active session found.', [
             'logged_in' => true,
             'user' => [
@@ -190,7 +201,8 @@ switch ($action) {
                 'role' => $user['role'],
                 'created_at' => $user['created_at'],
                 'last_login' => $user['last_login'],
-                'keys' => $keys
+                'keys' => $keys,
+                'orders' => $orders
             ]
         ]);
         break;

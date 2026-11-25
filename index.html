@@ -573,7 +573,7 @@
       <div class="keys-container">
         <div class="keys-header">
           <h2 class="keys-title highlighted">my keys</h2>
-          <p class="keys-subtitle">all license keys stored in your account database</p>
+          <p class="keys-subtitle">manage licenses, copy keys, and track orders</p>
         </div>
 
         <!-- account connection status bar -->
@@ -585,29 +585,74 @@
           <button class="btn-account-sync" id="keys-sync-btn">sign in / register</button>
         </div>
 
+        <!-- real-time summary stats -->
+        <div class="keys-stats-grid">
+          <div class="keys-stat-box">
+            <span class="keys-stat-num" id="stat-total-keys">0</span>
+            <span class="keys-stat-label">total keys</span>
+          </div>
+          <div class="keys-stat-box">
+            <span class="keys-stat-num keys-stat-green" id="stat-active-keys">0</span>
+            <span class="keys-stat-label">active</span>
+          </div>
+          <div class="keys-stat-box">
+            <span class="keys-stat-num keys-stat-blue" id="stat-total-orders">0</span>
+            <span class="keys-stat-label">orders</span>
+          </div>
+        </div>
+
         <div class="keys-card">
-          <div class="keys-section-header">
-            <h3 class="section-title">purchased license keys</h3>
-            <span class="keys-count-badge" id="keys-count-badge">0 keys</span>
+          <div class="keys-toolbar">
+            <div class="keys-subtabs">
+              <button class="keys-subtab active" id="subtab-keys-btn" data-keys-tab="keys">
+                <svg class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+                <span>license keys</span>
+                <span class="keys-count-badge" id="keys-count-badge">0</span>
+              </button>
+              <button class="keys-subtab" id="subtab-orders-btn" data-keys-tab="orders">
+                <svg class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+                <span>order history</span>
+                <span class="keys-count-badge" id="orders-count-badge">0</span>
+              </button>
+            </div>
+
+            <div class="keys-search-wrap" id="keys-search-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" id="keys-search-input" class="search-input keys-search-input" placeholder="search keys...">
+            </div>
           </div>
 
-          <div class="keys-list" id="active-keys-list">
-            <div class="empty-keys-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-              <p>no license keys found in this account.</p>
-              <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
+          <div id="key-feedback" class="key-feedback"></div>
+
+          <!-- license keys panel -->
+          <div class="keys-panel active" id="panel-keys">
+            <div class="keys-list" id="active-keys-list">
+              <div class="empty-keys-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+                <p>no license keys found in this account.</p>
+                <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- order history panel -->
+          <div class="keys-panel" id="panel-orders">
+            <div class="orders-list" id="order-history-list">
+              <div class="empty-keys-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <p>no orders found yet.</p>
+              </div>
             </div>
           </div>
 
           <div class="redeem-separator">
-            <span>or redeem / bind an external key</span>
+            <span>or bind an existing license key</span>
           </div>
 
           <div class="key-input-row">
-            <input type="text" id="license-key-input" class="key-input" placeholder="enter license key (e.g. rust-xxxx-xxxx)">
+            <input type="text" id="license-key-input" class="key-input" placeholder="enter license key (e.g. rust-elite-xxxx-xxxx)">
             <button class="btn-redeem" id="redeem-key-btn">bind to account</button>
           </div>
-          <div id="key-feedback" class="key-feedback"></div>
         </div>
       </div>
     </section>
@@ -758,7 +803,7 @@
       <div class="modal-header">
         <div class="checkout-header-titles">
           <h3 class="modal-title">checkout</h3>
-          <span class="square-badge">powered by square</span>
+          <span class="square-badge" id="square-mode-badge">powered by square</span>
         </div>
         <button class="modal-close-btn" id="close-checkout-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -798,6 +843,9 @@
       </div>
     </div>
   </div>
+
+  <!-- toast notifications -->
+  <div class="toast-container" id="toast-container"></div>
 
   <!-- footer -->
   <footer class="site-footer">

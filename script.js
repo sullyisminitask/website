@@ -4,9 +4,24 @@
 document.addEventListener('DOMContentLoaded', () => {
   // state
   let cart = [];
+  try {
+    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    if (Array.isArray(savedCart)) {
+      cart = savedCart;
+    }
+  } catch (e) {
+    cart = [];
+  }
+
   let selectedPlan = {
     name: '3 day',
     price: 16.99
+  };
+
+  let currentUser = null;
+  let squareConfigState = {
+    configured: false,
+    environment: 'sandbox'
   };
 
   // elements
@@ -30,6 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartItemsContainer = document.getElementById('cart-items');
   const cartTotalPrice = document.getElementById('cart-total-price');
   const checkoutBtn = document.getElementById('checkout-btn');
+  const toastContainer = document.getElementById('toast-container');
+
+  function showToast(message) {
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast-item';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => toast.remove(), 250);
+    }, 2600);
+  }
+
+  function saveCart() {
+    try {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    } catch (e) {}
+  }
 
   // switch view
   function switchView(viewName) {
@@ -44,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    history.replaceState(null, '', '#' + viewName);
+    history.replaceState(null, '', window.location.pathname + '#' + viewName);
   }
 
   // nav & tab clicks
@@ -85,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const homeMiniCard = document.getElementById('home-mini-card');
   if (homeMiniCard) {
     homeMiniCard.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return; // let buttons handle their own click
+      if (e.target.closest('button')) return;
       switchView('product');
     });
   }
@@ -115,19 +150,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const addToCartBtn = document.getElementById('add-to-cart-btn');
   if (addToCartBtn) {
     addToCartBtn.addEventListener('click', () => {
-      cart.push({
-        product: 'rust elite',
-        plan: selectedPlan.name,
-        price: selectedPlan.price
-      });
+      const existing = cart.find(i => (i.product || i.name) === 'rust elite' && i.plan === selectedPlan.name);
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({
+          name: 'rust elite',
+          product: 'rust elite',
+          plan: selectedPlan.name,
+          price: selectedPlan.price,
+          quantity: 1
+        });
+      }
+      saveCart();
       updateCartUI();
+      showToast(`added rust elite (${selectedPlan.name}) to cart`);
       openCart();
     });
   }
 
   function updateCartUI() {
+    const totalCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     if (cartCounter) {
-      cartCounter.textContent = cart.length;
+      cartCounter.textContent = totalCount;
     }
 
     if (!cartItemsContainer) return;
@@ -141,16 +186,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let total = 0;
     cartItemsContainer.innerHTML = '';
     cart.forEach((item, index) => {
-      total += item.price;
+      const qty = item.quantity || 1;
+      const lineTotal = item.price * qty;
+      total += lineTotal;
       const row = document.createElement('div');
       row.className = 'cart-item-row';
       row.innerHTML = `
         <div>
-          <div class="cart-item-title">${item.product}</div>
-          <div class="cart-item-plan">${item.plan} license</div>
+          <div class="cart-item-title">${item.product || item.name || 'rust elite'}</div>
+          <div class="cart-item-plan">${item.plan} license × ${qty}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+          <div class="cart-item-price">$${lineTotal.toFixed(2)}</div>
           <button class="remove-cart-item" data-index="${index}" style="background:transparent;border:none;color:#ef4444;cursor:pointer;font-size:0.8rem;">remove</button>
         </div>
       `;
@@ -161,11 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
       cartTotalPrice.textContent = '$' + total.toFixed(2);
     }
 
-    // attach remove handlers
     document.querySelectorAll('.remove-cart-item').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.getAttribute('data-index'));
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
         cart.splice(idx, 1);
+        saveCart();
         updateCartUI();
       });
     });
@@ -187,21 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // checkout button
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
-      if (cart.length === 0) return;
-      const generatedKey = 'chud-rust-' + Math.random().toString(36).substring(2, 8) + '-' + Math.random().toString(36).substring(2, 8);
-      alert(`purchase successful! your license key: ${generatedKey}\nuse the "my keys" tab to manage it.`);
-      
-      // automatically add to my keys
-      addKeyToUI(generatedKey, 'rust elite - active');
-      cart = [];
-      updateCartUI();
-      closeCart();
-      switchView('my-keys');
-    });
-  }
+  // initialize cart UI from localStorage
+  updateCartUI();
 
   // features accordion dropdowns
   const accordionItems = document.querySelectorAll('.accordion-item');
@@ -218,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // shop search filter
   const shopSearch = document.getElementById('shop-search');
   const stockCount = document.getElementById('stock-count');
-  const productsGrid = document.getElementById('products-grid');
 
   if (shopSearch && cardRustElite) {
     shopSearch.addEventListener('input', (e) => {
@@ -250,11 +283,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const keyInput = document.getElementById('license-key-input');
   const keyFeedback = document.getElementById('key-feedback');
   const activeKeysList = document.getElementById('active-keys-list');
+  const orderHistoryList = document.getElementById('order-history-list');
   const keysCountBadge = document.getElementById('keys-count-badge');
+  const ordersCountBadge = document.getElementById('orders-count-badge');
   const keysAccountStatus = document.getElementById('keys-account-status');
   const keysSyncBtn = document.getElementById('keys-sync-btn');
+  const statTotalKeys = document.getElementById('stat-total-keys');
+  const statActiveKeys = document.getElementById('stat-active-keys');
+  const statTotalOrders = document.getElementById('stat-total-orders');
+  const keysSearchInput = document.getElementById('keys-search-input');
+  const keysSearchWrap = document.getElementById('keys-search-wrap');
+  const subtabKeysBtn = document.getElementById('subtab-keys-btn');
+  const subtabOrdersBtn = document.getElementById('subtab-orders-btn');
+  const panelKeys = document.getElementById('panel-keys');
+  const panelOrders = document.getElementById('panel-orders');
 
-  // Local fallback keys for guest purchases
   let guestKeys = [];
   try {
     guestKeys = JSON.parse(localStorage.getItem('guest_keys') || '[]');
@@ -262,11 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
     guestKeys = [];
   }
 
+  function maskKeyString(key) {
+    if (!key || key.length <= 8) return '••••••••';
+    return key.slice(0, 6) + '••••-••••-' + key.slice(-4);
+  }
+
   function copyToClipboard(text, btnElement) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         const orig = btnElement.textContent;
         btnElement.textContent = 'copied!';
+        showToast('key copied to clipboard');
         setTimeout(() => { btnElement.textContent = orig; }, 1800);
       }).catch(() => fallbackCopy(text, btnElement));
     } else {
@@ -283,83 +332,216 @@ document.addEventListener('DOMContentLoaded', () => {
       document.execCommand('copy');
       const orig = btnElement.textContent;
       btnElement.textContent = 'copied!';
+      showToast('key copied to clipboard');
       setTimeout(() => { btnElement.textContent = orig; }, 1800);
     } catch (e) {}
     document.body.removeChild(ta);
   }
 
+  // My Keys subtabs switching
+  document.querySelectorAll('[data-keys-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-keys-tab');
+      if (subtabKeysBtn) subtabKeysBtn.classList.toggle('active', target === 'keys');
+      if (subtabOrdersBtn) subtabOrdersBtn.classList.toggle('active', target === 'orders');
+      if (panelKeys) panelKeys.classList.toggle('active', target === 'keys');
+      if (panelOrders) panelOrders.classList.toggle('active', target === 'orders');
+      if (keysSearchWrap) keysSearchWrap.style.display = target === 'keys' ? 'flex' : 'none';
+    });
+  });
+
+  if (keysSearchInput) {
+    keysSearchInput.addEventListener('input', () => {
+      renderMyKeys();
+    });
+  }
+
   function renderMyKeys() {
-    if (!activeKeysList) return;
+    const userKeys = (currentUser && Array.isArray(currentUser.keys)) ? currentUser.keys : [];
+    const keysAll = userKeys.length > 0 ? [...userKeys] : [...guestKeys];
+    const ordersAll = (currentUser && Array.isArray(currentUser.orders)) ? currentUser.orders : [];
 
-    // Keys to display: user's database keys if logged in, plus any guest keys
-    let keysToDisplay = [];
-    if (currentUser && currentUser.keys && currentUser.keys.length > 0) {
-      keysToDisplay = [...currentUser.keys];
-    } else if (guestKeys.length > 0) {
-      keysToDisplay = [...guestKeys];
-    }
+    const activeCount = keysAll.filter(k => (k.status || 'active').toLowerCase() === 'active').length;
 
-    if (keysCountBadge) {
-      keysCountBadge.textContent = `${keysToDisplay.length} key${keysToDisplay.length === 1 ? '' : 's'}`;
-    }
+    if (statTotalKeys) statTotalKeys.textContent = keysAll.length;
+    if (statActiveKeys) statActiveKeys.textContent = activeCount;
+    if (statTotalOrders) statTotalOrders.textContent = ordersAll.length;
+    if (keysCountBadge) keysCountBadge.textContent = keysAll.length;
+    if (ordersCountBadge) ordersCountBadge.textContent = ordersAll.length;
 
     if (keysAccountStatus) {
       if (currentUser) {
-        keysAccountStatus.textContent = `account: ${currentUser.email} • persistent database storage`;
+        keysAccountStatus.textContent = `account: ${currentUser.email} • synced with database`;
         if (keysSyncBtn) keysSyncBtn.textContent = 'view profile';
       } else {
-        keysAccountStatus.textContent = `not signed in — keys bought as guest are stored locally. log in to sync.`;
+        keysAccountStatus.textContent = `not signed in — guest keys are saved locally. log in to sync across devices.`;
         if (keysSyncBtn) keysSyncBtn.textContent = 'sign in / register';
       }
     }
 
-    if (keysToDisplay.length === 0) {
-      activeKeysList.innerHTML = `
-        <div class="empty-keys-placeholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-          <p>no license keys found in this account.</p>
-          <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
-        </div>
-      `;
-      const browseBtn = activeKeysList.querySelector('[data-action="go-shop"]');
-      if (browseBtn) {
-        browseBtn.addEventListener('click', () => switchView('shop'));
+    // Filter keys by search query
+    const searchQ = keysSearchInput ? keysSearchInput.value.toLowerCase().trim() : '';
+    const filteredKeys = searchQ
+      ? keysAll.filter(k => {
+          const hay = `${k.license_key || k.key || ''} ${k.product || ''} ${k.plan || ''} ${k.order_id || ''}`.toLowerCase();
+          return hay.includes(searchQ);
+        })
+      : keysAll;
+
+    if (activeKeysList) {
+      if (keysAll.length === 0) {
+        activeKeysList.innerHTML = `
+          <div class="empty-keys-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+            <p>no license keys found in this account.</p>
+            <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
+          </div>
+        `;
+        const browseBtn = activeKeysList.querySelector('[data-action="go-shop"]');
+        if (browseBtn) browseBtn.addEventListener('click', () => switchView('shop'));
+      } else if (filteredKeys.length === 0) {
+        activeKeysList.innerHTML = `
+          <div class="empty-keys-placeholder">
+            <p>no keys match "${searchQ}"</p>
+          </div>
+        `;
+      } else {
+        activeKeysList.innerHTML = '';
+        filteredKeys.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'key-card-item';
+          const keyVal = (item.license_key || item.key || '').toLowerCase();
+          const prodName = (item.product || 'rust elite').toLowerCase();
+          const planName = (item.plan || '1 day').toLowerCase();
+          const orderRef = item.order_id ? item.order_id.toLowerCase() : '';
+          const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'recent';
+          const statusStr = (item.status || 'active').toLowerCase();
+          const statusClass = statusStr === 'revoked' ? 'revoked' : (statusStr === 'pending' ? 'pending' : '');
+
+          let revealed = false;
+
+          card.innerHTML = `
+            <div class="key-card-top">
+              <div class="key-card-product">
+                <span class="key-product-name">${prodName}</span>
+                <span class="key-plan-pill">${planName}</span>
+                ${orderRef ? `<span class="key-order-pill">#${orderRef}</span>` : ''}
+              </div>
+              <span class="key-status-badge ${statusClass}">${statusStr}</span>
+            </div>
+            <div class="key-card-middle">
+              <span class="key-card-code">${maskKeyString(keyVal)}</span>
+              <div class="key-card-actions">
+                <button class="btn-icon-action" title="reveal or hide key" aria-label="reveal key">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-copy-key">copy key</button>
+              </div>
+            </div>
+            <div class="key-card-footer">
+              <span class="key-card-date">issued: ${dateStr}</span>
+              <button class="btn-setup-link">setup guide</button>
+            </div>
+          `;
+
+          const codeEl = card.querySelector('.key-card-code');
+          const toggleBtn = card.querySelector('.btn-icon-action');
+          const copyBtn = card.querySelector('.btn-copy-key');
+          const setupBtn = card.querySelector('.btn-setup-link');
+
+          if (toggleBtn && codeEl) {
+            toggleBtn.addEventListener('click', () => {
+              revealed = !revealed;
+              codeEl.textContent = revealed ? keyVal : maskKeyString(keyVal);
+              toggleBtn.innerHTML = revealed
+                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>'
+                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+            });
+          }
+
+          if (copyBtn) {
+            copyBtn.addEventListener('click', () => copyToClipboard(keyVal, copyBtn));
+          }
+
+          if (setupBtn) {
+            setupBtn.addEventListener('click', () => switchView('setup-guides'));
+          }
+
+          activeKeysList.appendChild(card);
+        });
       }
-      return;
     }
 
-    activeKeysList.innerHTML = '';
-    keysToDisplay.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'key-card-item';
-      const keyVal = item.license_key || item.key || '';
-      const prodName = item.product || 'rust elite';
-      const planName = item.plan || '1 day';
-      const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'recent';
-      const statusStr = item.status || 'undetected - active';
-
-      card.innerHTML = `
-        <div class="key-card-top">
-          <div class="key-card-product">
-            <span class="key-product-name">${prodName}</span>
-            <span class="key-plan-pill">${planName}</span>
+    // Render Order History
+    if (orderHistoryList) {
+      if (ordersAll.length === 0) {
+        orderHistoryList.innerHTML = `
+          <div class="empty-keys-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <p>${currentUser ? 'no orders found in this account yet.' : 'sign in to view your square order history.'}</p>
           </div>
-          <span class="key-status-badge">${statusStr}</span>
-        </div>
-        <div class="key-card-middle">
-          <span class="key-card-code">${keyVal}</span>
-          <button class="btn-copy-key">copy key</button>
-        </div>
-        <div class="key-card-date">purchased / bound: ${dateStr}</div>
-      `;
+        `;
+      } else {
+        orderHistoryList.innerHTML = '';
+        ordersAll.forEach(ord => {
+          const card = document.createElement('div');
+          card.className = 'order-card-item';
+          let itemsDesc = 'rust elite';
+          try {
+            const parsed = JSON.parse(ord.items || '[]');
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              itemsDesc = parsed.map(i => `${i.product || i.name || 'rust elite'} (${i.plan || '1 day'}) × ${i.quantity || 1}`).join(', ');
+            }
+          } catch (e) {}
 
-      const copyBtn = card.querySelector('.btn-copy-key');
-      if (copyBtn) {
-        copyBtn.addEventListener('click', () => copyToClipboard(keyVal, copyBtn));
+          const st = (ord.status || 'pending').toLowerCase();
+          const stClass = st === 'completed' ? '' : 'pending';
+          const amt = parseFloat(ord.amount || 0).toFixed(2);
+          const dateStr = ord.created_at ? ord.created_at.split(' ')[0] : '';
+
+          card.innerHTML = `
+            <div class="key-card-top">
+              <div class="key-card-product">
+                <span class="key-product-name">#${(ord.order_id || '').toLowerCase()}</span>
+                <span class="key-plan-pill">${dateStr}</span>
+              </div>
+              <span class="key-status-badge ${stClass}">${st}</span>
+            </div>
+            <div class="order-summary-line">
+              <span>${itemsDesc}</span>
+              <span class="order-amount">$${amt} ${(ord.currency || 'usd').toLowerCase()}</span>
+            </div>
+            ${st === 'pending' ? `<div class="key-card-footer"><span class="key-card-date">awaiting square confirmation</span><button class="btn-copy-key verify-order-btn" data-order-id="${ord.order_id}">verify payment</button></div>` : ''}
+          `;
+
+          const verifyBtn = card.querySelector('.verify-order-btn');
+          if (verifyBtn) {
+            verifyBtn.addEventListener('click', async () => {
+              verifyBtn.disabled = true;
+              verifyBtn.textContent = 'checking...';
+              try {
+                const res = await fetch(`api/square.php?action=verify_order&order_id=${encodeURIComponent(ord.order_id)}`);
+                const data = await res.json();
+                if (data.success) {
+                  showToast('payment verified! keys added');
+                  await checkAuthSession();
+                } else {
+                  showToast(data.message || 'payment still pending');
+                  verifyBtn.disabled = false;
+                  verifyBtn.textContent = 'verify payment';
+                }
+              } catch (err) {
+                showToast('error verifying order');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'verify payment';
+              }
+            });
+          }
+
+          orderHistoryList.appendChild(card);
+        });
       }
-
-      activeKeysList.appendChild(card);
-    });
+    }
   }
 
   if (keysSyncBtn) {
@@ -368,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (redeemBtn && keyInput) {
     redeemBtn.addEventListener('click', async () => {
-      const key = keyInput.value.trim().toUpperCase();
+      const key = keyInput.value.trim().toLowerCase();
       if (!key) {
         if (keyFeedback) {
           keyFeedback.className = 'key-feedback error';
@@ -387,24 +569,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.success) {
           if (keyFeedback) {
             keyFeedback.className = 'key-feedback success';
-            keyFeedback.textContent = data.message || 'key bound successfully!';
+            keyFeedback.textContent = (data.message || 'key bound successfully!').toLowerCase();
           }
           keyInput.value = '';
           if (currentUser) {
-            checkAuthSession();
+            await checkAuthSession();
           } else {
-            guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', created_at: new Date().toISOString() });
+            guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
             localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
             renderMyKeys();
           }
         } else {
           if (keyFeedback) {
             keyFeedback.className = 'key-feedback error';
-            keyFeedback.textContent = data.message || 'could not activate key';
+            keyFeedback.textContent = (data.message || 'could not activate key').toLowerCase();
           }
         }
       } catch (err) {
-        guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', created_at: new Date().toISOString() });
+        guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
         localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
         renderMyKeys();
         if (keyFeedback) {
@@ -417,7 +599,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Account & Authentication system
-  let currentUser = null;
   const accountModal = document.getElementById('account-modal');
   const openAccountBtn = document.getElementById('open-account-btn');
   const closeAccountBtn = document.getElementById('close-account-btn');
@@ -437,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showFeedback(msg, isError = true) {
     if (!authFeedback) return;
-    authFeedback.textContent = msg;
+    authFeedback.textContent = msg.toLowerCase();
     authFeedback.className = 'auth-feedback ' + (isError ? 'error' : 'success');
   }
 
@@ -465,7 +646,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Switch tabs between login and register
   if (tabBtnLogin && tabBtnRegister) {
     tabBtnLogin.addEventListener('click', () => {
       tabBtnLogin.classList.add('active');
@@ -506,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'profile-key-card';
             card.innerHTML = `
-              <span class="profile-key-code">${k.license_key}</span>
+              <span class="profile-key-code">${(k.license_key || '').toLowerCase()}</span>
               <span class="profile-key-tag">${k.product || 'rust elite'} (${k.plan || '1 day'})</span>
             `;
             profileKeysList.appendChild(card);
@@ -526,11 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (authProfileContainer) authProfileContainer.style.display = 'none';
     }
 
-    // Refresh My Keys view with account keys
     renderMyKeys();
   }
 
-  // Check existing session
   async function checkAuthSession() {
     try {
       const res = await fetch('api/auth.php?action=me');
@@ -545,7 +723,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Handle registration
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -583,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
           registerForm.reset();
           setTimeout(() => {
             updateAuthUI(data.user);
-          }, 600);
+          }, 500);
         } else {
           showFeedback(data.message || 'registration failed.');
         }
@@ -593,7 +770,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle login
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -620,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
           loginForm.reset();
           setTimeout(() => {
             updateAuthUI(data.user);
-          }, 500);
+          }, 400);
         } else {
           showFeedback(data.message || 'invalid email or password.');
         }
@@ -630,7 +806,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle logout
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
@@ -649,47 +824,68 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkoutEmail = document.getElementById('checkout-email');
   const paySquareBtn = document.getElementById('pay-square-btn');
   const checkoutFeedback = document.getElementById('checkout-feedback');
+  const squareModeBadge = document.getElementById('square-mode-badge');
+
+  async function loadSquareConfig() {
+    try {
+      const res = await fetch('api/square.php?action=config');
+      const data = await res.json();
+      if (data.success) {
+        squareConfigState = {
+          configured: !!data.configured,
+          environment: (data.environment || 'sandbox').toLowerCase()
+        };
+        if (squareModeBadge) {
+          if (squareConfigState.configured) {
+            squareModeBadge.textContent = squareConfigState.environment === 'production'
+              ? 'square live checkout'
+              : 'square sandbox';
+            squareModeBadge.className = 'square-badge ' + (squareConfigState.environment === 'production' ? 'live' : 'sandbox');
+          } else {
+            squareModeBadge.textContent = 'sandbox demo (unconfigured)';
+            squareModeBadge.className = 'square-badge sandbox';
+          }
+        }
+      }
+    } catch (e) {}
+  }
 
   function openCheckoutModal() {
     if (cart.length === 0) {
-      alert('your cart is empty. select a plan first.');
+      showToast('your cart is empty. select a plan first.');
       return;
     }
 
     closeCart();
 
-    // Populate checkout items
+    if (checkoutFeedback) {
+      checkoutFeedback.className = 'auth-feedback';
+      checkoutFeedback.textContent = '';
+    }
+
     if (checkoutItemsList) {
       checkoutItemsList.innerHTML = '';
       let total = 0;
       cart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
+        const qty = item.quantity || 1;
+        const prodName = item.product || item.name || 'rust elite';
+        const itemTotal = item.price * qty;
         total += itemTotal;
         const row = document.createElement('div');
         row.className = 'checkout-item-row';
         row.innerHTML = `
-          <span class="checkout-item-title">${item.name} (${item.plan}) × ${item.quantity}</span>
+          <span class="checkout-item-title">${prodName} (${item.plan}) × ${qty}</span>
           <span class="checkout-item-price">$${itemTotal.toFixed(2)}</span>
         `;
         checkoutItemsList.appendChild(row);
       });
       if (checkoutTotalPrice) {
-        checkoutTotalPrice.textContent = `$${total.toFixed(2)}`;
+        checkoutTotalPrice.textContent = '$' + total.toFixed(2);
       }
     }
 
-    // Pre-fill email if logged in
-    if (checkoutEmail) {
-      if (currentUser && currentUser.email) {
-        checkoutEmail.value = currentUser.email;
-      } else if (!checkoutEmail.value) {
-        checkoutEmail.value = '';
-      }
-    }
-
-    if (checkoutFeedback) {
-      checkoutFeedback.textContent = '';
-      checkoutFeedback.className = 'auth-feedback';
+    if (checkoutEmail && currentUser && currentUser.email) {
+      checkoutEmail.value = currentUser.email;
     }
 
     if (checkoutModal) {
@@ -704,10 +900,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (checkoutBtn) {
-    // Intercept checkout button to open Square Checkout modal
     checkoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      e.stopPropagation();
       openCheckoutModal();
     });
   }
@@ -722,23 +916,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Close active modals on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeCart();
+      closeAccountModal();
+      closeCheckoutModal();
+    }
+  });
+
   if (paySquareBtn) {
     paySquareBtn.addEventListener('click', async () => {
       const email = (checkoutEmail ? checkoutEmail.value.trim().toLowerCase() : '');
-      if (!email) {
+      if (!email || !email.includes('@') || !email.includes('.')) {
         if (checkoutFeedback) {
           checkoutFeedback.className = 'auth-feedback error';
-          checkoutFeedback.textContent = 'please enter an email address for key delivery.';
+          checkoutFeedback.textContent = 'please enter a valid email address for key delivery.';
         }
         return;
       }
 
-      if (!email.includes('@') || !email.includes('.')) {
-        if (checkoutFeedback) {
-          checkoutFeedback.className = 'auth-feedback error';
-          checkoutFeedback.textContent = 'please enter a valid email address.';
-        }
-        return;
+      if (checkoutFeedback) {
+        checkoutFeedback.className = 'auth-feedback';
+        checkoutFeedback.textContent = '';
       }
 
       const origBtnHtml = paySquareBtn.innerHTML;
@@ -757,18 +957,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
 
         if (data.success) {
-          // If a hosted Square Checkout URL is returned, redirect to Square
           if (data.checkout_url) {
             window.location.href = data.checkout_url;
             return;
           }
 
-          // Instant completion (sandbox / simulated direct checkout)
           cart = [];
           localStorage.removeItem('cart');
           updateCartUI();
 
-          // Save keys locally as guest backup if not logged in
           if (data.keys && data.keys.length > 0) {
             data.keys.forEach(k => {
               guestKeys.unshift(k);
@@ -776,27 +973,26 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
           }
 
-          // Re-fetch user session so newly assigned keys appear in account
           await checkAuthSession();
 
           closeCheckoutModal();
           switchView('my-keys');
 
-          const keyFeedbackElem = document.getElementById('key-feedback');
-          if (keyFeedbackElem) {
-            keyFeedbackElem.className = 'key-feedback success';
-            keyFeedbackElem.textContent = 'payment successful via square! your license keys are saved in your account below.';
+          if (keyFeedback) {
+            keyFeedback.className = 'key-feedback success';
+            keyFeedback.textContent = (data.message || 'payment successful! your license keys are ready below.').toLowerCase();
           }
+          showToast('keys delivered to my keys');
         } else {
           if (checkoutFeedback) {
             checkoutFeedback.className = 'auth-feedback error';
-            checkoutFeedback.textContent = data.message || 'square payment failed. please try again.';
+            checkoutFeedback.textContent = (data.message || 'square payment failed. please try again.').toLowerCase();
           }
         }
       } catch (err) {
         if (checkoutFeedback) {
           checkoutFeedback.className = 'auth-feedback error';
-          checkoutFeedback.textContent = 'network error contacting square api. please try again.';
+          checkoutFeedback.textContent = 'network error contacting square api. please ensure php server is running.';
         }
       } finally {
         paySquareBtn.disabled = false;
@@ -805,30 +1001,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Check URL parameters for return from Square payment link
+  // Handle return from Square Payment Link
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('payment_success') === '1') {
+  const returnedSuccess = urlParams.get('payment_success') === '1';
+  const returnedPending = urlParams.get('payment_pending') === '1';
+  const returnedOrder = urlParams.get('order') || '';
+
+  if (returnedSuccess) {
     cart = [];
     localStorage.removeItem('cart');
     updateCartUI();
-    checkAuthSession();
-    switchView('my-keys');
-    const keyFeedbackElem = document.getElementById('key-feedback');
-    if (keyFeedbackElem) {
-      keyFeedbackElem.className = 'key-feedback success';
-      keyFeedbackElem.textContent = 'payment confirmed by square! your license keys are listed below.';
-    }
   }
 
-  // Initialize session check
-  checkAuthSession();
+  // Initialize Square config + Auth session
+  loadSquareConfig();
+  checkAuthSession().then(() => {
+    if (returnedSuccess) {
+      switchView('my-keys');
+      if (keyFeedback) {
+        keyFeedback.className = 'key-feedback success';
+        keyFeedback.textContent = `payment confirmed by square${returnedOrder ? ' (#' + returnedOrder.toLowerCase() + ')' : ''}! your license keys are listed below.`;
+      }
+    } else if (returnedPending) {
+      switchView('my-keys');
+      if (subtabOrdersBtn) subtabOrdersBtn.click();
+      if (keyFeedback) {
+        keyFeedback.className = 'key-feedback error';
+        keyFeedback.textContent = `payment still pending on square${returnedOrder ? ' (#' + returnedOrder.toLowerCase() + ')' : ''}. click verify payment in order history.`;
+      }
+    }
+  });
 
   // check initial route
-  const hash = window.location.hash.replace('#', '');
+  const hash = window.location.hash.replace('#', '').split('?')[0];
   if (hash && views[hash]) {
     switchView(hash);
-  } else {
-    // default to home or shop as specified
+  } else if (!returnedSuccess && !returnedPending) {
     switchView('home');
   }
 });
