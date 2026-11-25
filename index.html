@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- ambient architectural backdrop -->
+  <div class="bg-grid-overlay" aria-hidden="true"></div>
+  <div class="bg-glow-top" aria-hidden="true"></div>
+
   <!-- top banner -->
   <header class="top-banner">
     <div class="banner-inner">
@@ -14,7 +18,7 @@
         <a href="#home" class="brand-link" id="brand-logo">chudcheats.xyz</a>
       </div>
       <nav class="banner-nav">
-        <button class="nav-tab active" data-tab="shop">
+        <button class="nav-tab" data-tab="shop">
           <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           <span>shop</span>
         </button>
@@ -50,7 +54,7 @@
 
   <main class="main-content">
     <!-- home view (hero area) -->
-    <section class="page-view" id="view-home">
+    <section class="page-view active" id="view-home">
       <div class="hero-container">
         <div class="hero-left">
           <div class="hero-eyebrow">#1 provider</div>
@@ -183,9 +187,18 @@
           <h2 class="bold-heading-title">rust elite</h2>
           
           <div class="underglow-badges">
-            <span class="underglow-tag glow-green">undetected</span>
-            <span class="underglow-tag glow-yellow">best seller</span>
-            <span class="underglow-tag glow-blue">helpful support</span>
+            <span class="underglow-tag glow-green">
+              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>undetected</span>
+            </span>
+            <span class="underglow-tag glow-yellow">
+              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              <span>best seller</span>
+            </span>
+            <span class="underglow-tag glow-blue">
+              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+              <span>helpful support</span>
+            </span>
           </div>
 
           <p class="product-description">
