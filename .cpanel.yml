@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/chudmzsq/public_html/
     - /bin/cp -R * $DEPLOYPATH
+    - grep -q "ErrorDocument 404 /404.html" ${DEPLOYPATH}.htaccess 2>/dev/null || printf "\nErrorDocument 404 /404.html\n" >> ${DEPLOYPATH}.htaccess

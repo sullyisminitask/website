@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'status': document.getElementById('view-status'),
     'setup-guides': document.getElementById('view-setup-guides'),
     'my-keys': document.getElementById('view-my-keys'),
-    'tos': document.getElementById('view-tos')
+    'tos': document.getElementById('view-tos'),
+    '404': document.getElementById('view-404')
   };
 
   const navTabs = document.querySelectorAll('.nav-tab[data-tab]');
@@ -1032,11 +1033,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // check initial route
-  const hash = window.location.hash.replace('#', '').split('?')[0];
-  if (hash && views[hash]) {
-    switchView(hash);
-  } else if (!returnedSuccess && !returnedPending) {
-    switchView('home');
+  // check initial route and hash changes
+  function handleHashRoute() {
+    const rawHash = window.location.hash.replace('#', '').split('?')[0].trim();
+    if (!rawHash) {
+      if (!returnedSuccess && !returnedPending) {
+        switchView('home');
+      }
+      return;
+    }
+    if (views[rawHash]) {
+      switchView(rawHash);
+    } else {
+      switchView('404');
+    }
   }
+
+  window.addEventListener('hashchange', handleHashRoute);
+  handleHashRoute();
 });
