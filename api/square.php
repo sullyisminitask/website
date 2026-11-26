@@ -283,10 +283,49 @@ try {
         ]);
         break;
 
+    case 'check_promo':
+        $code = trim(strtolower($input['code'] ?? $_GET['code'] ?? ''));
+        if ($code === '') {
+            jsonResponse(false, 'please enter a promo code.', [], 400);
+        }
+
+        $pStmt = $pdo->prepare('SELECT id, code, discount_percent, max_uses, used_count, active FROM promo_codes WHERE LOWER(code) = ? LIMIT 1');
+        $pStmt->execute([$code]);
+        $promo = $pStmt->fetch();
+
+        if (!$promo || !(int)$promo['active']) {
+            jsonResponse(false, 'invalid promo code.', [], 404);
+        }
+
+        $maxUses = (int)$promo['max_uses'];
+        $usedCount = (int)$promo['used_count'];
+        $remaining = max(0, $maxUses - $usedCount);
+
+        if ($remaining <= 0) {
+            jsonResponse(false, "promo code \"{$promo['code']}\" has reached its {$maxUses}-use limit.", [
+                'uses_remaining' => 0,
+                'max_uses' => $maxUses
+            ], 400);
+        }
+
+        jsonResponse(true, "promo \"{$promo['code']}\" applied ({$promo['discount_percent']}% off — {$remaining} use" . ($remaining === 1 ? '' : 's') . " left).", [
+            'code' => strtolower($promo['code']),
+            'discount_percent' => (int)$promo['discount_percent'],
+            'max_uses' => $maxUses,
+            'used_count' => $usedCount,
+            'uses_remaining' => $remaining
+        ]);
+        break;
+
     case 'create_checkout':
         $items = $input['items'] ?? [];
         if (empty($items) || !is_array($items)) {
             jsonResponse(false, 'cart is empty.', [], 400);
+        }
+
+        $tosAccepted = !empty($input['tos_accepted']);
+        if (!$tosAccepted) {
+            jsonResponse(false, 'you must accept the terms of service before checking out.', [], 400);
         }
 
         $userId = $_SESSION['user_id'] ?? null;
@@ -321,6 +360,26 @@ try {
         $fx = getUsdToAudRate();
         $fxRate = ($currency === 'AUD') ? (float)$fx['rate'] : 1.0;
 
+        $promoCodeInput = trim(strtolower($input['promo_code'] ?? ''));
+        $appliedPromo = null;
+        $discountPercent = 0;
+
+        if ($promoCodeInput !== '') {
+            // Validate promo before hitting Square; lock/consume atomically below
+            $pStmt = $pdo->prepare('SELECT id, code, discount_percent, max_uses, used_count, active FROM promo_codes WHERE LOWER(code) = ? LIMIT 1');
+            $pStmt->execute([$promoCodeInput]);
+            $promoRow = $pStmt->fetch();
+
+            if (!$promoRow || !(int)$promoRow['active']) {
+                jsonResponse(false, 'invalid promo code.', [], 400);
+            }
+            if ((int)$promoRow['used_count'] >= (int)$promoRow['max_uses']) {
+                jsonResponse(false, "promo code \"{$promoRow['code']}\" has reached its {$promoRow['max_uses']}-use limit.", [], 400);
+            }
+            $appliedPromo = $promoRow;
+            $discountPercent = max(0, min(100, (int)$promoRow['discount_percent']));
+        }
+
         $orderId = 'ord-' . bin2hex(random_bytes(4));
         $totalUsdCents = 0;
         $totalCents = 0;
@@ -337,25 +396,28 @@ try {
             $qty = intval($item['quantity'] ?? 1);
             if ($qty < 1) $qty = 1;
 
+            $discountedUsd = round($serverPriceUsd * ((100 - $discountPercent) / 100), 2);
             $unitChargeAmount = ($currency === 'AUD')
-                ? round($serverPriceUsd * $fxRate, 2)
-                : $serverPriceUsd;
+                ? round($discountedUsd * $fxRate, 2)
+                : $discountedUsd;
             $itemCents = intval(round($unitChargeAmount * 100));
-            $totalUsdCents += intval(round($serverPriceUsd * 100)) * $qty;
+            $totalUsdCents += intval(round($discountedUsd * 100)) * $qty;
             $totalCents += ($itemCents * $qty);
 
             $normalizedItems[] = [
                 'product' => $name,
                 'plan' => $plan,
-                'price' => $serverPriceUsd,
-                'price_usd' => $serverPriceUsd,
+                'price' => $discountedUsd,
+                'price_usd' => $discountedUsd,
+                'original_price_usd' => $serverPriceUsd,
                 'price_charged' => $unitChargeAmount,
                 'charged_currency' => $currency,
                 'fx_rate' => $fxRate,
+                'promo_code' => $appliedPromo ? strtolower($appliedPromo['code']) : null,
                 'quantity' => $qty
             ];
 
-            $usdLabel = number_format($serverPriceUsd, 2);
+            $usdLabel = number_format($discountedUsd, 2);
             $lineItems[] = [
                 'name' => "{$name} ({$plan} - \${$usdLabel} usd)",
                 'quantity' => (string)$qty,
@@ -364,6 +426,72 @@ try {
                     'currency' => $currency
                 ]
             ];
+        }
+
+        // Free order via 100% promo code (atomically consume 1 use and issue keys)
+        if ($appliedPromo !== null && $totalCents === 0) {
+            $isSqlite = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite');
+            if ($isSqlite) {
+                $pdo->exec('BEGIN IMMEDIATE');
+            } else {
+                $pdo->beginTransaction();
+            }
+
+            try {
+                $consumeStmt = $pdo->prepare(
+                    'UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ? AND active = 1 AND used_count < max_uses'
+                );
+                $consumeStmt->execute([$appliedPromo['id']]);
+
+                if ($consumeStmt->rowCount() !== 1) {
+                    $pdo->rollBack();
+                    jsonResponse(false, "promo code \"{$appliedPromo['code']}\" has reached its {$appliedPromo['max_uses']}-use limit.", [], 400);
+                }
+
+                $orderStmt = $pdo->prepare(
+                    'INSERT INTO orders (user_id, order_id, amount, currency, status, items, promo_code, tos_accepted, created_at) VALUES (?, ?, 0, ?, ?, ?, ?, 1, datetime("now"))'
+                );
+                $orderStmt->execute([
+                    $userId,
+                    $orderId,
+                    $currency,
+                    'completed',
+                    json_encode($normalizedItems),
+                    strtolower($appliedPromo['code'])
+                ]);
+
+                $redempStmt = $pdo->prepare(
+                    'INSERT INTO promo_redemptions (promo_id, user_id, order_id, created_at) VALUES (?, ?, ?, datetime("now"))'
+                );
+                $redempStmt->execute([$appliedPromo['id'], $userId, $orderId]);
+
+                $generatedKeys = issueKeysForOrder($pdo, [
+                    'user_id' => $userId,
+                    'order_id' => $orderId,
+                    'items' => json_encode($normalizedItems)
+                ]);
+
+                $pdo->commit();
+            } catch (Throwable $txErr) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $txErr;
+            }
+
+            $usesRemaining = max(0, (int)$appliedPromo['max_uses'] - ((int)$appliedPromo['used_count'] + 1));
+            jsonResponse(true, "promo \"{$appliedPromo['code']}\" applied! free order completed ({$usesRemaining} use" . ($usesRemaining === 1 ? '' : 's') . " remaining).", [
+                'instant_completion' => true,
+                'promo_applied' => strtolower($appliedPromo['code']),
+                'uses_remaining' => $usesRemaining,
+                'order_id' => $orderId,
+                'usd_total' => 0,
+                'charged_total' => 0,
+                'charged_currency' => $currency,
+                'fx_rate' => $fxRate,
+                'keys' => $generatedKeys,
+                'user_id' => $userId
+            ]);
         }
 
         if ($isSquareConfigured) {
@@ -390,8 +518,8 @@ try {
 
             if ($resp['http_code'] >= 200 && $resp['http_code'] < 300 && !empty($resp['data']['payment_link']['url'])) {
                 $squareOrderId = $resp['data']['payment_link']['order_id'] ?? null;
-                $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, square_order_id, amount, currency, status, items, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime("now"))');
-                $orderStmt->execute([$userId, $orderId, $squareOrderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems)]);
+                $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, square_order_id, amount, currency, status, items, promo_code, tos_accepted, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, datetime("now"))');
+                $orderStmt->execute([$userId, $orderId, $squareOrderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems), $appliedPromo ? strtolower($appliedPromo['code']) : null]);
 
                 jsonResponse(true, 'square checkout link created.', [
                     'checkout_url' => $resp['data']['payment_link']['url'],
@@ -410,8 +538,8 @@ try {
         }
 
         // Sandbox demo fallback ONLY when Square credentials have not been set in api/config.php
-        $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, amount, currency, status, items, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
-        $orderStmt->execute([$userId, $orderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems)]);
+        $orderStmt = $pdo->prepare('INSERT INTO orders (user_id, order_id, amount, currency, status, items, promo_code, tos_accepted, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, datetime("now"))');
+        $orderStmt->execute([$userId, $orderId, $totalCents / 100, $currency, 'pending', json_encode($normalizedItems), $appliedPromo ? strtolower($appliedPromo['code']) : null]);
 
         $createdOrder = [
             'user_id' => $userId,
@@ -526,7 +654,7 @@ try {
         exit;
 
     default:
-        jsonResponse(false, 'invalid action. supported: config, create_checkout, verify_order, callback.', [], 400);
+        jsonResponse(false, 'invalid action. supported: config, rate, check_promo, create_checkout, verify_order, callback.', [], 400);
         break;
     }
 } catch (Throwable $e) {

@@ -838,6 +838,15 @@
           </div>
         </div>
 
+        <div class="checkout-promo-box">
+          <label for="checkout-promo-input" class="checkout-label">promo code</label>
+          <div class="promo-input-row">
+            <input type="text" id="checkout-promo-input" class="form-input promo-input" placeholder="enter promo code..." autocomplete="off">
+            <button type="button" class="btn-secondary btn-promo-apply" id="apply-promo-btn">apply</button>
+          </div>
+          <div id="checkout-promo-feedback" class="promo-feedback"></div>
+        </div>
+
         <div class="fx-notice-box" id="checkout-fx-box">
           <div class="fx-notice-header">
             <svg class="fx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -854,6 +863,19 @@
           <label for="checkout-email" class="checkout-label">delivery email <span class="required-star">*</span></label>
           <p class="checkout-hint">keys will be saved directly in your account database under this email.</p>
           <input type="email" id="checkout-email" class="form-input" placeholder="you@domain.com" required>
+        </div>
+
+        <div class="checkout-tos-box">
+          <label class="checkout-tos-check" for="checkout-tos-checkbox">
+            <input type="checkbox" id="checkout-tos-checkbox" required>
+            <span>i agree to the <button type="button" class="tos-inline-link" id="toggle-checkout-tos-btn">terms of service</button> <span class="required-star">*</span></span>
+          </label>
+          <div class="checkout-tos-preview" id="checkout-tos-preview" style="display: none;">
+            <p>1. all digital license key sales are final (no refunds or chargebacks).</p>
+            <p>2. software is used at your own risk; we hold no liability for bans or sanctions.</p>
+            <p>3. sharing, reselling, or reverse engineering revokes key access permanently.</p>
+            <button type="button" class="tos-full-link" id="open-full-tos-btn">read full terms of service &rarr;</button>
+          </div>
         </div>
 
         <div id="checkout-feedback" class="auth-feedback"></div>

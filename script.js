@@ -827,33 +827,64 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkoutTotalPrice = document.getElementById('checkout-total-price');
   const checkoutEmail = document.getElementById('checkout-email');
   const paySquareBtn = document.getElementById('pay-square-btn');
-  const paySquareBtnText = document.getElementById('pay-square-btn-text');
   const checkoutFeedback = document.getElementById('checkout-feedback');
   const squareModeBadge = document.getElementById('square-mode-badge');
   const checkoutFxBox = document.getElementById('checkout-fx-box');
   const checkoutFxPair = document.getElementById('checkout-fx-pair');
   const checkoutFxRate = document.getElementById('checkout-fx-rate');
+  const checkoutPromoInput = document.getElementById('checkout-promo-input');
+  const applyPromoBtn = document.getElementById('apply-promo-btn');
+  const checkoutPromoFeedback = document.getElementById('checkout-promo-feedback');
+  const checkoutTosCheckbox = document.getElementById('checkout-tos-checkbox');
+  const toggleCheckoutTosBtn = document.getElementById('toggle-checkout-tos-btn');
+  const checkoutTosPreview = document.getElementById('checkout-tos-preview');
+  const openFullTosBtn = document.getElementById('open-full-tos-btn');
+
+  let appliedPromo = null;
+
+  function setPromoFeedback(msg, isError = false) {
+    if (!checkoutPromoFeedback) return;
+    if (!msg) {
+      checkoutPromoFeedback.textContent = '';
+      checkoutPromoFeedback.className = 'promo-feedback';
+      return;
+    }
+    checkoutPromoFeedback.textContent = msg.toLowerCase();
+    checkoutPromoFeedback.className = 'promo-feedback ' + (isError ? 'error' : 'success');
+  }
+
+  function clearAppliedPromo() {
+    appliedPromo = null;
+    if (applyPromoBtn) applyPromoBtn.textContent = 'apply';
+    setPromoFeedback('');
+    updateCheckoutConversionUI();
+  }
 
   function updateCheckoutConversionUI() {
     let totalUsd = 0;
     let totalAud = 0;
     const rate = squareConfigState.usdToAud || 1.51;
     const isAud = (squareConfigState.currency || 'AUD').toUpperCase() === 'AUD';
+    const discountPct = appliedPromo ? Math.max(0, Math.min(100, Number(appliedPromo.discount_percent || 0))) : 0;
 
     cart.forEach(item => {
       const qty = item.quantity || 1;
-      const unitUsd = Number(item.price || 0);
+      const baseUsd = Number(item.price || 0);
+      const unitUsd = Math.round(baseUsd * ((100 - discountPct) / 100) * 100) / 100;
       totalUsd += unitUsd * qty;
       const unitAud = Math.round(unitUsd * rate * 100) / 100;
       totalAud += unitAud * qty;
     });
 
     if (checkoutTotalPrice) {
-      checkoutTotalPrice.textContent = '$' + totalUsd.toFixed(2) + ' usd';
+      checkoutTotalPrice.textContent = appliedPromo && totalUsd === 0
+        ? `$0.00 usd (free via ${appliedPromo.code})`
+        : '$' + totalUsd.toFixed(2) + ' usd';
     }
 
+    const isFree = totalUsd <= 0;
     if (checkoutFxBox) {
-      checkoutFxBox.style.display = isAud ? 'flex' : 'none';
+      checkoutFxBox.style.display = (!isFree && isAud) ? 'flex' : 'none';
     }
     if (checkoutFxPair) {
       checkoutFxPair.textContent = `$${totalUsd.toFixed(2)} usd > $${totalAud.toFixed(2)} aud`;
@@ -862,10 +893,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const src = squareConfigState.rateSource === 'live' ? 'live rate' : (squareConfigState.rateSource || 'rate');
       checkoutFxRate.textContent = `1 usd = ${rate.toFixed(4)} aud (${src})`;
     }
-    if (paySquareBtnText) {
-      paySquareBtnText.textContent = isAud
-        ? `pay $${totalAud.toFixed(2)} aud with square`
-        : `pay $${totalUsd.toFixed(2)} usd with square`;
+
+    const btnTextEl = document.getElementById('pay-square-btn-text');
+    if (btnTextEl) {
+      if (isFree) {
+        btnTextEl.textContent = 'complete free order';
+      } else {
+        btnTextEl.textContent = isAud
+          ? `pay $${totalAud.toFixed(2)} aud with square`
+          : `pay $${totalUsd.toFixed(2)} usd with square`;
+      }
     }
   }
 
@@ -910,6 +947,11 @@ document.addEventListener('DOMContentLoaded', () => {
       checkoutFeedback.textContent = '';
     }
 
+    clearAppliedPromo();
+    if (checkoutPromoInput) checkoutPromoInput.value = '';
+    if (checkoutTosCheckbox) checkoutTosCheckbox.checked = false;
+    if (checkoutTosPreview) checkoutTosPreview.style.display = 'none';
+
     if (checkoutItemsList) {
       checkoutItemsList.innerHTML = '';
       cart.forEach(item => {
@@ -942,6 +984,69 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkoutModal) {
       checkoutModal.classList.remove('active');
     }
+  }
+
+  if (toggleCheckoutTosBtn && checkoutTosPreview) {
+    toggleCheckoutTosBtn.addEventListener('click', () => {
+      const open = checkoutTosPreview.style.display !== 'none';
+      checkoutTosPreview.style.display = open ? 'none' : 'flex';
+    });
+  }
+
+  if (openFullTosBtn) {
+    openFullTosBtn.addEventListener('click', () => {
+      closeCheckoutModal();
+      switchView('tos');
+    });
+  }
+
+  if (applyPromoBtn && checkoutPromoInput) {
+    applyPromoBtn.addEventListener('click', async () => {
+      const code = checkoutPromoInput.value.trim().toLowerCase();
+      if (appliedPromo && appliedPromo.code === code) {
+        checkoutPromoInput.value = '';
+        clearAppliedPromo();
+        return;
+      }
+
+      if (!code) {
+        clearAppliedPromo();
+        setPromoFeedback('enter a promo code first.', true);
+        return;
+      }
+
+      applyPromoBtn.disabled = true;
+      applyPromoBtn.textContent = '...';
+      try {
+        const res = await fetch(`api/square.php?action=check_promo&code=${encodeURIComponent(code)}`);
+        const data = await res.json();
+        if (data.success) {
+          appliedPromo = {
+            code: data.code,
+            discount_percent: data.discount_percent,
+            uses_remaining: data.uses_remaining
+          };
+          applyPromoBtn.textContent = 'remove';
+          setPromoFeedback(data.message || `promo "${data.code}" applied!`, false);
+          updateCheckoutConversionUI();
+        } else {
+          appliedPromo = null;
+          applyPromoBtn.textContent = 'apply';
+          setPromoFeedback(data.message || 'invalid promo code.', true);
+          updateCheckoutConversionUI();
+        }
+      } catch (err) {
+        setPromoFeedback('could not verify promo code.', true);
+      } finally {
+        applyPromoBtn.disabled = false;
+      }
+    });
+
+    checkoutPromoInput.addEventListener('input', () => {
+      if (appliedPromo && checkoutPromoInput.value.trim().toLowerCase() !== appliedPromo.code) {
+        clearAppliedPromo();
+      }
+    });
   }
 
   if (checkoutBtn) {
@@ -981,23 +1086,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      if (!checkoutTosCheckbox || !checkoutTosCheckbox.checked) {
+        if (checkoutFeedback) {
+          checkoutFeedback.className = 'auth-feedback error';
+          checkoutFeedback.textContent = 'you must accept the terms of service before continuing.';
+        }
+        if (checkoutTosCheckbox) checkoutTosCheckbox.focus();
+        return;
+      }
+
       if (checkoutFeedback) {
         checkoutFeedback.className = 'auth-feedback';
         checkoutFeedback.textContent = '';
       }
 
-      const origBtnHtml = paySquareBtn.innerHTML;
+      const btnTextEl = document.getElementById('pay-square-btn-text');
+      const prevBtnLabel = btnTextEl ? btnTextEl.textContent : 'pay with square';
       paySquareBtn.disabled = true;
-      paySquareBtn.innerHTML = `
-        <svg class="square-icon animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-        <span>connecting to square...</span>
-      `;
+      if (btnTextEl) {
+        btnTextEl.textContent = appliedPromo && appliedPromo.discount_percent >= 100
+          ? 'completing free order...'
+          : 'connecting to square...';
+      }
 
       try {
         const res = await fetch('api/square.php?action=create_checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: cart, email: email })
+          body: JSON.stringify({
+            items: cart,
+            email: email,
+            promo_code: appliedPromo ? appliedPromo.code : '',
+            tos_accepted: true
+          })
         });
         const data = await res.json();
 
@@ -1010,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
           cart = [];
           localStorage.removeItem('cart');
           updateCartUI();
+          clearAppliedPromo();
 
           if (data.keys && data.keys.length > 0) {
             data.keys.forEach(k => {
@@ -1025,13 +1147,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (keyFeedback) {
             keyFeedback.className = 'key-feedback success';
-            keyFeedback.textContent = (data.message || 'payment successful! your license keys are ready below.').toLowerCase();
+            keyFeedback.textContent = (data.message || 'order completed! your license keys are ready below.').toLowerCase();
           }
           showToast('keys delivered to my keys');
         } else {
           if (checkoutFeedback) {
             checkoutFeedback.className = 'auth-feedback error';
-            checkoutFeedback.textContent = (data.message || 'square payment failed. please try again.').toLowerCase();
+            checkoutFeedback.textContent = (data.message || 'checkout failed. please try again.').toLowerCase();
           }
         }
       } catch (err) {
@@ -1041,7 +1163,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } finally {
         paySquareBtn.disabled = false;
-        paySquareBtn.innerHTML = origBtnHtml;
+        const restoreEl = document.getElementById('pay-square-btn-text');
+        if (restoreEl) restoreEl.textContent = prevBtnLabel;
+        updateCheckoutConversionUI();
       }
     });
   }
