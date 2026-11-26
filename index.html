@@ -116,7 +116,7 @@
             <p class="mini-product-desc">our cheat currently has a small userbase making detctions rare from anti-cheats. look below for our feature list.</p>
             <div class="mini-price-action-row">
               <div class="mini-price-group">
-                <span class="mini-price-text">starts at $7.99</span>
+                <span class="mini-price-text">starts at $7.99 usd</span>
                 <button class="btn-browse" data-action="go-shop">browse</button>
               </div>
               <button class="btn-primary" data-action="go-product">view rust elite</button>
@@ -155,7 +155,7 @@
             <h3 class="card-title">rust elite</h3>
           </div>
           <div class="card-price-box">
-            <span class="card-price">starting from 7.99</span>
+            <span class="card-price">starting from $7.99 usd</span>
           </div>
         </div>
       </div>
@@ -177,7 +177,7 @@
               <h3 class="card-title">rust elite</h3>
             </div>
             <div class="card-price-box">
-              <span class="card-price">starting from 7.99</span>
+              <span class="card-price">starting from $7.99 usd</span>
             </div>
           </div>
         </div>
@@ -206,13 +206,13 @@
           </p>
 
           <div class="plans-section">
-            <div class="plans-title">select plan</div>
+            <div class="plans-title">select plan (usd)</div>
             <div class="plans-grid">
               <label class="plan-option" data-plan="1 day" data-price="7.99">
                 <input type="radio" name="plan" value="1 day" data-price="7.99">
                 <div class="plan-content">
                   <div class="plan-name">1 day</div>
-                  <div class="plan-price">$7.99</div>
+                  <div class="plan-price">$7.99 usd</div>
                 </div>
               </label>
 
@@ -223,7 +223,7 @@
                     <span class="plan-name">3 day</span>
                     <span class="plan-tag">best seller</span>
                   </div>
-                  <div class="plan-price">$16.99</div>
+                  <div class="plan-price">$16.99 usd</div>
                 </div>
               </label>
 
@@ -231,7 +231,7 @@
                 <input type="radio" name="plan" value="week" data-price="25.99">
                 <div class="plan-content">
                   <div class="plan-name">week</div>
-                  <div class="plan-price">$25.99</div>
+                  <div class="plan-price">$25.99 usd</div>
                 </div>
               </label>
 
@@ -239,7 +239,7 @@
                 <input type="radio" name="plan" value="month" data-price="54.99">
                 <div class="plan-content">
                   <div class="plan-name">month</div>
-                  <div class="plan-price">$54.99</div>
+                  <div class="plan-price">$54.99 usd</div>
                 </div>
               </label>
 
@@ -247,7 +247,7 @@
                 <input type="radio" name="plan" value="3 month" data-price="139.99">
                 <div class="plan-content">
                   <div class="plan-name">3 month</div>
-                  <div class="plan-price">$139.99</div>
+                  <div class="plan-price">$139.99 usd</div>
                 </div>
               </label>
             </div>
@@ -255,7 +255,7 @@
             <div class="plan-action-box">
               <div class="selected-plan-summary">
                 <span class="summary-label">selected plan:</span>
-                <span class="summary-value" id="selected-plan-display">3 day ($16.99)</span>
+                <span class="summary-value" id="selected-plan-display">3 day ($16.99 usd)</span>
               </div>
               <button class="btn-add-to-cart" id="add-to-cart-btn">
                 <svg class="btn-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
@@ -805,8 +805,8 @@
       </div>
       <div class="cart-footer">
         <div class="cart-total-row">
-          <span>total</span>
-          <span id="cart-total-price">$0.00</span>
+          <span>total (usd)</span>
+          <span id="cart-total-price">$0.00 usd</span>
         </div>
         <button class="btn-checkout" id="checkout-btn">proceed to checkout</button>
       </div>
@@ -828,13 +828,25 @@
 
       <div class="checkout-body">
         <div class="order-summary-box">
-          <div class="summary-heading">order summary</div>
+          <div class="summary-heading">order summary (usd)</div>
           <div id="checkout-items-list" class="checkout-items-list">
             <!-- populated from cart -->
           </div>
           <div class="checkout-total-row">
-            <span>total amount</span>
-            <span id="checkout-total-price" class="total-amount">$0.00</span>
+            <span>store total (usd)</span>
+            <span id="checkout-total-price" class="total-amount">$0.00 usd</span>
+          </div>
+        </div>
+
+        <div class="fx-notice-box" id="checkout-fx-box">
+          <div class="fx-notice-header">
+            <svg class="fx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span class="fx-direction-tag">usd &gt; aud</span>
+          </div>
+          <p class="fx-notice-text">our payment processer can only process aud, but our pricing is in usd. the checkout is going to display aud pricing heres the real conversion.</p>
+          <div class="fx-conversion-row">
+            <span class="fx-pair" id="checkout-fx-pair">$0.00 usd &gt; $0.00 aud</span>
+            <span class="fx-rate-pill" id="checkout-fx-rate">1 usd = ... aud</span>
           </div>
         </div>
 
@@ -849,7 +861,7 @@
         <div class="checkout-payment-box">
           <button class="btn-primary pay-square-btn" id="pay-square-btn">
             <svg class="square-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><rect width="8" height="8" x="8" y="8" rx="1"/></svg>
-            <span>pay with square</span>
+            <span id="pay-square-btn-text">pay with square (aud)</span>
           </button>
           <p class="secure-notice">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

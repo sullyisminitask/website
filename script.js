@@ -21,7 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = null;
   let squareConfigState = {
     configured: false,
-    environment: 'sandbox'
+    environment: 'sandbox',
+    currency: 'AUD',
+    usdToAud: 1.51,
+    rateSource: 'loading'
   };
 
   // elements
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const price = parseFloat(option.getAttribute('data-price'));
       selectedPlan = { name, price };
       if (selectedPlanDisplay) {
-        selectedPlanDisplay.textContent = `${name} ($${price.toFixed(2)})`;
+        selectedPlanDisplay.textContent = `${name} ($${price.toFixed(2)} usd)`;
       }
     });
   });
@@ -180,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cart.length === 0) {
       cartItemsContainer.innerHTML = '<div class="empty-cart-msg">your cart is empty</div>';
-      if (cartTotalPrice) cartTotalPrice.textContent = '$0.00';
+      if (cartTotalPrice) cartTotalPrice.textContent = '$0.00 usd';
       return;
     }
 
@@ -198,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="cart-item-plan">${item.plan} license × ${qty}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <div class="cart-item-price">$${lineTotal.toFixed(2)}</div>
+          <div class="cart-item-price">$${lineTotal.toFixed(2)} usd</div>
           <button class="remove-cart-item" data-index="${index}" style="background:transparent;border:none;color:#ef4444;cursor:pointer;font-size:0.8rem;">remove</button>
         </div>
       `;
@@ -206,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (cartTotalPrice) {
-      cartTotalPrice.textContent = '$' + total.toFixed(2);
+      cartTotalPrice.textContent = '$' + total.toFixed(2) + ' usd';
     }
 
     document.querySelectorAll('.remove-cart-item').forEach(btn => {
@@ -824,8 +827,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkoutTotalPrice = document.getElementById('checkout-total-price');
   const checkoutEmail = document.getElementById('checkout-email');
   const paySquareBtn = document.getElementById('pay-square-btn');
+  const paySquareBtnText = document.getElementById('pay-square-btn-text');
   const checkoutFeedback = document.getElementById('checkout-feedback');
   const squareModeBadge = document.getElementById('square-mode-badge');
+  const checkoutFxBox = document.getElementById('checkout-fx-box');
+  const checkoutFxPair = document.getElementById('checkout-fx-pair');
+  const checkoutFxRate = document.getElementById('checkout-fx-rate');
+
+  function updateCheckoutConversionUI() {
+    let totalUsd = 0;
+    let totalAud = 0;
+    const rate = squareConfigState.usdToAud || 1.51;
+    const isAud = (squareConfigState.currency || 'AUD').toUpperCase() === 'AUD';
+
+    cart.forEach(item => {
+      const qty = item.quantity || 1;
+      const unitUsd = Number(item.price || 0);
+      totalUsd += unitUsd * qty;
+      const unitAud = Math.round(unitUsd * rate * 100) / 100;
+      totalAud += unitAud * qty;
+    });
+
+    if (checkoutTotalPrice) {
+      checkoutTotalPrice.textContent = '$' + totalUsd.toFixed(2) + ' usd';
+    }
+
+    if (checkoutFxBox) {
+      checkoutFxBox.style.display = isAud ? 'flex' : 'none';
+    }
+    if (checkoutFxPair) {
+      checkoutFxPair.textContent = `$${totalUsd.toFixed(2)} usd > $${totalAud.toFixed(2)} aud`;
+    }
+    if (checkoutFxRate) {
+      const src = squareConfigState.rateSource === 'live' ? 'live rate' : (squareConfigState.rateSource || 'rate');
+      checkoutFxRate.textContent = `1 usd = ${rate.toFixed(4)} aud (${src})`;
+    }
+    if (paySquareBtnText) {
+      paySquareBtnText.textContent = isAud
+        ? `pay $${totalAud.toFixed(2)} aud with square`
+        : `pay $${totalUsd.toFixed(2)} usd with square`;
+    }
+  }
 
   async function loadSquareConfig() {
     try {
@@ -834,7 +876,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.success) {
         squareConfigState = {
           configured: !!data.configured,
-          environment: (data.environment || 'sandbox').toLowerCase()
+          environment: (data.environment || 'sandbox').toLowerCase(),
+          currency: (data.currency || 'AUD').toUpperCase(),
+          usdToAud: Number(data.usd_to_aud) || 1.51,
+          rateSource: data.rate_source || 'live'
         };
         if (squareModeBadge) {
           if (squareConfigState.configured) {
@@ -847,6 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
             squareModeBadge.className = 'square-badge sandbox';
           }
         }
+        updateCheckoutConversionUI();
       }
     } catch (e) {}
   }
@@ -866,24 +912,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (checkoutItemsList) {
       checkoutItemsList.innerHTML = '';
-      let total = 0;
       cart.forEach(item => {
         const qty = item.quantity || 1;
         const prodName = item.product || item.name || 'rust elite';
         const itemTotal = item.price * qty;
-        total += itemTotal;
         const row = document.createElement('div');
         row.className = 'checkout-item-row';
         row.innerHTML = `
           <span class="checkout-item-title">${prodName} (${item.plan}) × ${qty}</span>
-          <span class="checkout-item-price">$${itemTotal.toFixed(2)}</span>
+          <span class="checkout-item-price">$${itemTotal.toFixed(2)} usd</span>
         `;
         checkoutItemsList.appendChild(row);
       });
-      if (checkoutTotalPrice) {
-        checkoutTotalPrice.textContent = '$' + total.toFixed(2);
-      }
     }
+
+    updateCheckoutConversionUI();
+    loadSquareConfig();
 
     if (checkoutEmail && currentUser && currentUser.email) {
       checkoutEmail.value = currentUser.email;

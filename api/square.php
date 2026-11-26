@@ -95,6 +95,83 @@ function callSquareApi(string $method, string $url, string $accessToken, ?array 
     ];
 }
 
+function fetchLiveUsdToAudRate(): ?array {
+    $endpoints = [
+        'https://open.er-api.com/v6/latest/USD',
+        'https://api.frankfurter.dev/v1/latest?base=USD&symbols=AUD'
+    ];
+
+    foreach ($endpoints as $url) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'chudcheats-fx/1.0');
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300 && is_string($res)) {
+            $json = json_decode($res, true);
+            $rate = $json['rates']['AUD'] ?? null;
+            if (is_numeric($rate) && (float)$rate > 0.5 && (float)$rate < 5.0) {
+                return [
+                    'rate' => (float)$rate,
+                    'source' => 'live',
+                    'updated_at' => gmdate('Y-m-d H:i:s') . ' utc'
+                ];
+            }
+        }
+    }
+    return null;
+}
+
+function getUsdToAudRate(bool $forceRefresh = false): array {
+    $cacheFile = __DIR__ . '/../data/fx_cache.json';
+    $ttlSeconds = 900;
+
+    if (!$forceRefresh && file_exists($cacheFile)) {
+        $cached = json_decode((string)@file_get_contents($cacheFile), true);
+        if (is_array($cached) && !empty($cached['rate']) && !empty($cached['fetched_at'])) {
+            if ((time() - (int)$cached['fetched_at']) < $ttlSeconds) {
+                return [
+                    'rate' => (float)$cached['rate'],
+                    'source' => 'live',
+                    'updated_at' => $cached['updated_at'] ?? ''
+                ];
+            }
+        }
+    }
+
+    $live = fetchLiveUsdToAudRate();
+    if ($live !== null) {
+        $cacheData = [
+            'rate' => $live['rate'],
+            'fetched_at' => time(),
+            'updated_at' => $live['updated_at']
+        ];
+        @file_put_contents($cacheFile, json_encode($cacheData));
+        return $live;
+    }
+
+    if (file_exists($cacheFile)) {
+        $stale = json_decode((string)@file_get_contents($cacheFile), true);
+        if (is_array($stale) && !empty($stale['rate'])) {
+            return [
+                'rate' => (float)$stale['rate'],
+                'source' => 'cached',
+                'updated_at' => $stale['updated_at'] ?? ''
+            ];
+        }
+    }
+
+    return [
+        'rate' => 1.51,
+        'source' => 'fallback',
+        'updated_at' => gmdate('Y-m-d H:i:s') . ' utc'
+    ];
+}
+
 function generateLicenseKey(string $product = 'rust-elite'): string {
     $prefix = strtolower(str_replace(' ', '-', trim($product)));
     $p1 = bin2hex(random_bytes(2));
@@ -191,11 +268,17 @@ try {
 
     switch ($action) {
     case 'config':
+    case 'rate':
+        $fx = getUsdToAudRate(!empty($_GET['refresh']));
         jsonResponse(true, 'square configuration', [
             'application_id' => isRealCredential($appId) ? $appId : '',
             'location_id' => isRealCredential($locationId) ? $locationId : '',
             'environment' => $squareConfig['environment'] ?? 'sandbox',
+            'display_currency' => 'USD',
             'currency' => $currency,
+            'usd_to_aud' => $fx['rate'],
+            'rate_source' => $fx['source'],
+            'rate_updated_at' => $fx['updated_at'],
             'configured' => $isSquareConfigured
         ]);
         break;
@@ -235,7 +318,11 @@ try {
             }
         }
 
+        $fx = getUsdToAudRate();
+        $fxRate = ($currency === 'AUD') ? (float)$fx['rate'] : 1.0;
+
         $orderId = 'ord-' . bin2hex(random_bytes(4));
+        $totalUsdCents = 0;
         $totalCents = 0;
         $lineItems = [];
         $normalizedItems = [];
@@ -243,25 +330,34 @@ try {
         foreach ($items as $item) {
             $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'rust elite'));
             $plan = strtolower(trim($item['plan'] ?? '1 day'));
-            $serverPrice = getServerPlanPrice($plan);
-            if ($serverPrice === null) {
+            $serverPriceUsd = getServerPlanPrice($plan);
+            if ($serverPriceUsd === null) {
                 jsonResponse(false, "invalid plan selected: {$plan}.", [], 400);
             }
             $qty = intval($item['quantity'] ?? 1);
             if ($qty < 1) $qty = 1;
 
-            $itemCents = intval(round($serverPrice * 100));
+            $unitChargeAmount = ($currency === 'AUD')
+                ? round($serverPriceUsd * $fxRate, 2)
+                : $serverPriceUsd;
+            $itemCents = intval(round($unitChargeAmount * 100));
+            $totalUsdCents += intval(round($serverPriceUsd * 100)) * $qty;
             $totalCents += ($itemCents * $qty);
 
             $normalizedItems[] = [
                 'product' => $name,
                 'plan' => $plan,
-                'price' => $serverPrice,
+                'price' => $serverPriceUsd,
+                'price_usd' => $serverPriceUsd,
+                'price_charged' => $unitChargeAmount,
+                'charged_currency' => $currency,
+                'fx_rate' => $fxRate,
                 'quantity' => $qty
             ];
 
+            $usdLabel = number_format($serverPriceUsd, 2);
             $lineItems[] = [
-                'name' => "{$name} ({$plan})",
+                'name' => "{$name} ({$plan} - \${$usdLabel} usd)",
                 'quantity' => (string)$qty,
                 'base_price_money' => [
                     'amount' => $itemCents,
@@ -299,7 +395,11 @@ try {
 
                 jsonResponse(true, 'square checkout link created.', [
                     'checkout_url' => $resp['data']['payment_link']['url'],
-                    'order_id' => $orderId
+                    'order_id' => $orderId,
+                    'usd_total' => $totalUsdCents / 100,
+                    'charged_total' => $totalCents / 100,
+                    'charged_currency' => $currency,
+                    'fx_rate' => $fxRate
                 ]);
             }
 
@@ -324,6 +424,10 @@ try {
             'instant_completion' => true,
             'sandbox_demo' => true,
             'order_id' => $orderId,
+            'usd_total' => $totalUsdCents / 100,
+            'charged_total' => $totalCents / 100,
+            'charged_currency' => $currency,
+            'fx_rate' => $fxRate,
             'keys' => $generatedKeys,
             'user_id' => $userId
         ]);

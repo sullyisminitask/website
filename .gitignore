@@ -1,4 +1,5 @@
 api/config.php
 data/*.sqlite
 data/*.db
+data/*.json
 .DS_Store
