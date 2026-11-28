@@ -162,10 +162,10 @@ html.authed body[data-auth="required"] .dash{visibility:visible}
 
 /* product + cart */
 .prod-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
-.gallery{border-radius:var(--r-frame);overflow:hidden;position:relative;aspect-ratio:1.05;background:#0b1119 center/cover;transition:background-image .3s}
+.gallery{border-radius:var(--r-frame);overflow:hidden;position:relative;aspect-ratio:16/9;background:#0b1119 center/cover;transition:background-image .3s}
 .gallery .tagq{position:absolute;left:16px;top:16px}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
-.thumbs button{aspect-ratio:1.3;border-radius:10px;background:center/cover;border:1px solid var(--line);opacity:.55;transition:opacity .3s,border-color .3s}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.thumbs button{aspect-ratio:16/9;border-radius:10px;background:center/cover;border:1px solid var(--line);opacity:.55;transition:opacity .3s,border-color .3s}
 .thumbs button.on,.thumbs button:hover{opacity:1;border-color:rgba(143,211,255,.5)}
 .buy h1{font:400 48px/1 var(--display);letter-spacing:var(--display-track);margin-top:14px}
 .buy > p{color:var(--ink-2);margin-top:14px;max-width:480px}
