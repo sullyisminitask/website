@@ -241,16 +241,91 @@ document.addEventListener('DOMContentLoaded', () => {
   // initialize cart UI from localStorage
   updateCartUI();
 
-  // features accordion dropdowns
+  // features accordion dropdowns + toggle-all button
   const accordionItems = document.querySelectorAll('.accordion-item');
+  const toggleAllFeaturesBtn = document.getElementById('toggle-all-features-btn');
+
   accordionItems.forEach(item => {
     const trigger = item.querySelector('.accordion-trigger');
     if (trigger) {
       trigger.addEventListener('click', () => {
         const isOpen = item.classList.contains('open');
         item.classList.toggle('open', !isOpen);
+        syncToggleAllLabel();
       });
     }
+  });
+
+  function syncToggleAllLabel() {
+    if (!toggleAllFeaturesBtn || accordionItems.length === 0) return;
+    const anyClosed = Array.from(accordionItems).some(i => !i.classList.contains('open'));
+    toggleAllFeaturesBtn.textContent = anyClosed ? 'show all features' : 'collapse all';
+  }
+
+  if (toggleAllFeaturesBtn) {
+    toggleAllFeaturesBtn.addEventListener('click', () => {
+      const shouldOpen = Array.from(accordionItems).some(i => !i.classList.contains('open'));
+      accordionItems.forEach(item => item.classList.toggle('open', shouldOpen));
+      syncToggleAllLabel();
+    });
+  }
+
+  const heroScrollHint = document.getElementById('hero-scroll-hint');
+  if (heroScrollHint) {
+    heroScrollHint.addEventListener('click', () => {
+      const target = document.getElementById('home-advantages');
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // rdc-style hero interactive launcher pills
+  const launcherPills = document.querySelectorAll('[data-launcher-plan]');
+  const launcherPricePreview = document.getElementById('launcher-price-preview');
+  launcherPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      launcherPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const planName = pill.getAttribute('data-launcher-plan');
+      const priceVal = parseFloat(pill.getAttribute('data-launcher-price') || '16.99');
+      if (launcherPricePreview) {
+        launcherPricePreview.textContent = `$${priceVal.toFixed(2)} usd`;
+      }
+      // sync selected plan in product view too
+      selectedPlan = { name: planName, price: priceVal };
+      planOptions.forEach(opt => {
+        const match = opt.getAttribute('data-plan') === planName;
+        opt.classList.toggle('selected', match);
+        const r = opt.querySelector('input[type="radio"]');
+        if (r) r.checked = match;
+      });
+      if (selectedPlanDisplay) {
+        selectedPlanDisplay.textContent = `${planName} ($${priceVal.toFixed(2)} usd)`;
+      }
+    });
+  });
+
+  // home subscription tier quick-add buttons
+  document.querySelectorAll('[data-quick-plan]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const planName = btn.getAttribute('data-quick-plan');
+      const priceVal = parseFloat(btn.getAttribute('data-quick-price') || '16.99');
+      const existing = cart.find(i => (i.product || i.name) === 'rust elite' && i.plan === planName);
+      if (existing) {
+        existing.quantity = (existing.quantity || 1) + 1;
+      } else {
+        cart.push({
+          name: 'rust elite',
+          product: 'rust elite',
+          plan: planName,
+          price: priceVal,
+          quantity: 1
+        });
+      }
+      saveCart();
+      updateCartUI();
+      showToast(`added rust elite (${planName}) to cart`);
+      openCart();
+    });
   });
 
   // shop search filter

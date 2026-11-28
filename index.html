@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>chudcheats.xyz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ambient architectural backdrop -->
+  <!-- atmospheric radial glows (rdc.zone aesthetic) -->
   <div class="bg-grid-overlay" aria-hidden="true"></div>
   <div class="bg-glow-top" aria-hidden="true"></div>
+  <div class="bg-glow-corner" aria-hidden="true"></div>
 
   <!-- top banner -->
   <header class="top-banner">
@@ -53,48 +57,297 @@
   </header>
 
   <main class="main-content">
-    <!-- home view (hero area) -->
+    <!-- home view (hero area + distinct advantages + subscription pricing) -->
     <section class="page-view active" id="view-home">
-      <div class="hero-container">
-        <div class="hero-left">
-          <div class="hero-eyebrow">#1 provider</div>
-          <h1 class="hero-title highlighted">chudcheats.xyz</h1>
-          <p class="hero-subtitle">for your undetected game cheats.</p>
-          <div class="hero-slogans">
-            <span class="slogan-badge">"created control."</span>
-            <span class="slogan-badge seller">"if everyone is cheating nobody is."</span>
+      <div class="hero-stage">
+        <div class="hero-container">
+          <div class="hero-left">
+            <div class="hero-eyebrow">#1 provider</div>
+            <h1 class="hero-title highlighted">chudcheats.xyz</h1>
+            <p class="hero-subtitle">for your undetected game cheats.</p>
+            <div class="hero-copy-block">
+              <p class="hero-intro-line">built with a small private userbase keeping detections rare.</p>
+              <p class="hero-intro-line">24/7 questions &amp; setup help in <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="inline-discord-link">discord</a>.</p>
+            </div>
+            <div class="hero-slogans">
+              <span class="slogan-badge">"created control."</span>
+              <span class="slogan-badge seller">"if everyone is cheating nobody is."</span>
+            </div>
+            <div class="hero-actions">
+              <button class="btn-primary" data-action="go-shop">browse shop</button>
+              <button class="btn-secondary" data-action="go-product">view rust elite</button>
+            </div>
           </div>
-          <div class="hero-actions">
-            <button class="btn-primary" data-action="go-shop">browse shop</button>
-            <button class="btn-secondary" data-action="go-product">view rust elite</button>
+
+          <div class="hero-right">
+            <div class="hero-image-wrap">
+              <img src="assets/hero-arctic-scientist.png" alt="rust arctic scientist" class="hero-image">
+            </div>
+
+            <!-- rdc-inspired interactive launcher card -->
+            <div class="hero-launcher-card" id="hero-launcher-card">
+              <div class="launcher-titlebar">
+                <span class="launcher-brand">chudcheats.xyz</span>
+                <div class="launcher-win-btns" aria-hidden="true">
+                  <span>&#8212;</span>
+                  <span>&#9633;</span>
+                  <span>&#215;</span>
+                </div>
+              </div>
+              <div class="launcher-body">
+                <div class="launcher-greeting">
+                  <span class="launcher-hello">rust elite</span>
+                  <span class="launcher-welcome">windows 10/11 &bull; amd, intel</span>
+                </div>
+                <div class="launcher-field">
+                  <span class="launcher-label">subscription</span>
+                  <div class="launcher-pills" id="launcher-plan-pills">
+                    <button type="button" class="launcher-pill" data-launcher-plan="1 day" data-launcher-price="7.99">1 day</button>
+                    <button type="button" class="launcher-pill active" data-launcher-plan="3 day" data-launcher-price="16.99">3 day</button>
+                    <button type="button" class="launcher-pill" data-launcher-plan="week" data-launcher-price="25.99">week</button>
+                  </div>
+                </div>
+                <div class="launcher-field">
+                  <span class="launcher-label">status</span>
+                  <div class="launcher-status-row">
+                    <span class="launcher-status-pill active-green">undetected</span>
+                    <span class="launcher-price-preview" id="launcher-price-preview">$16.99 usd</span>
+                  </div>
+                </div>
+                <button type="button" class="launcher-cta-btn" data-action="go-product">view product</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="hero-right">
-          <div class="hero-image-wrap">
-            <img src="assets/hero-arctic-scientist.png" alt="rust arctic scientist" class="hero-image">
-          </div>
-        </div>
+
+        <button type="button" class="hero-scroll-hint" id="hero-scroll-hint" aria-label="scroll to features">
+          <span class="scroll-mouse"><span class="scroll-wheel"></span></span>
+          <span class="scroll-label">scroll</span>
+        </button>
       </div>
 
-      <!-- home stats separator -->
-      <div class="home-stats-separator">
-        <div class="stat-item">
-          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          <span class="stat-text">99% uptime</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span class="stat-text">24/7 support</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-          <span class="stat-text">trusted seller</span>
-        </div>
-      </div>
+      <!-- rdc-style 3x2 distinct advantages bento grid -->
+      <section class="advantages-section" id="home-advantages">
+        <div class="advantages-grid">
+          <div class="advantages-intro-cell">
+            <h2 class="advantages-heading highlighted">created control.</h2>
+            <p class="advantages-subtext">a focused rust platform built for a small userbase, rapid updates, and full customization.</p>
+          </div>
 
-      <!-- mini shop: our best seller -->
+          <div class="advantage-card">
+            <span class="advantage-watermark" aria-hidden="true">userbase</span>
+            <div class="advantage-title-row">
+              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <h3 class="advantage-title">small userbase</h3>
+            </div>
+            <p class="advantage-desc">kept private by design so detection vectors remain rare across anti-cheat checks.</p>
+          </div>
+
+          <div class="advantage-card">
+            <span class="advantage-watermark" aria-hidden="true">customizable</span>
+            <div class="advantage-title-row">
+              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>
+              <h3 class="advantage-title">highly customizable</h3>
+            </div>
+            <p class="advantage-desc">memory &amp; silent aim, smoothing, custom fov, radar, chams, and world visuals tailored to you.</p>
+          </div>
+
+          <div class="advantage-card">
+            <span class="advantage-watermark" aria-hidden="true">updates</span>
+            <div class="advantage-title-row">
+              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+              <h3 class="advantage-title">active updates</h3>
+            </div>
+            <p class="advantage-desc">live status monitoring before every session so you know exact availability at a glance.</p>
+          </div>
+
+          <div class="advantage-card">
+            <span class="advantage-watermark" aria-hidden="true">support</span>
+            <div class="advantage-title-row">
+              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <h3 class="advantage-title">helpful support</h3>
+            </div>
+            <p class="advantage-desc">direct assistance through our discord community whenever you need setup or key help.</p>
+          </div>
+
+          <div class="advantage-card">
+            <span class="advantage-watermark" aria-hidden="true">instant</span>
+            <div class="advantage-title-row">
+              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+              <h3 class="advantage-title">instant delivery</h3>
+            </div>
+            <p class="advantage-desc">keys generate immediately on purchase and sync directly into your my keys dashboard.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- rdc-style subscription cards showcase -->
+      <section class="subscription-section" id="home-subscription">
+        <div class="subscription-header">
+          <h2 class="subscription-title highlighted">subscription</h2>
+          <p class="subscription-subtitle">select the desired subscription period &mdash; all pricing in usd</p>
+        </div>
+
+        <div class="subscription-cards-grid">
+          <div class="sub-card">
+            <div class="sub-card-top">
+              <div class="sub-card-icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <h3 class="sub-card-title">1 day</h3>
+            <p class="sub-card-desc">ideal for testing rust elite without a longer commitment.</p>
+            <div class="sub-card-price-row">
+              <span class="sub-price-num">$7.99</span>
+              <span class="sub-price-unit">/ 1 day usd</span>
+            </div>
+            <div class="sub-card-divider"></div>
+            <ul class="sub-card-perks">
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
+              </li>
+            </ul>
+            <div class="sub-card-divider"></div>
+            <button type="button" class="sub-card-btn" data-quick-plan="1 day" data-quick-price="7.99">add 1 day to cart</button>
+          </div>
+
+          <div class="sub-card featured-sub-card">
+            <div class="sub-card-top">
+              <div class="sub-card-icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <span class="sub-popular-pill">best seller</span>
+            </div>
+            <h3 class="sub-card-title">3 day</h3>
+            <p class="sub-card-desc">our most popular short-run license for full weekend wipes.</p>
+            <div class="sub-card-price-row">
+              <span class="sub-price-num">$16.99</span>
+              <span class="sub-price-unit">/ 3 days usd</span>
+            </div>
+            <div class="sub-card-divider"></div>
+            <ul class="sub-card-perks">
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
+              </li>
+            </ul>
+            <div class="sub-card-divider"></div>
+            <button type="button" class="sub-card-btn primary-sub-btn" data-quick-plan="3 day" data-quick-price="16.99">add 3 day to cart</button>
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-card-top">
+              <div class="sub-card-icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+            </div>
+            <h3 class="sub-card-title">week</h3>
+            <p class="sub-card-desc">seven days of complete access for full weekly wipe cycles.</p>
+            <div class="sub-card-price-row">
+              <span class="sub-price-num">$25.99</span>
+              <span class="sub-price-unit">/ 7 days usd</span>
+            </div>
+            <div class="sub-card-divider"></div>
+            <ul class="sub-card-perks">
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
+              </li>
+            </ul>
+            <div class="sub-card-divider"></div>
+            <button type="button" class="sub-card-btn" data-quick-plan="week" data-quick-price="25.99">add week to cart</button>
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-card-top">
+              <div class="sub-card-icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+            </div>
+            <h3 class="sub-card-title">month</h3>
+            <p class="sub-card-desc">thirty days of uninterrupted control across monthly wipe servers.</p>
+            <div class="sub-card-price-row">
+              <span class="sub-price-num">$54.99</span>
+              <span class="sub-price-unit">/ 30 days usd</span>
+            </div>
+            <div class="sub-card-divider"></div>
+            <ul class="sub-card-perks">
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
+              </li>
+            </ul>
+            <div class="sub-card-divider"></div>
+            <button type="button" class="sub-card-btn" data-quick-plan="month" data-quick-price="54.99">add month to cart</button>
+          </div>
+
+          <div class="sub-card">
+            <div class="sub-card-top">
+              <div class="sub-card-icon-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/></svg>
+              </div>
+            </div>
+            <h3 class="sub-card-title">3 month</h3>
+            <p class="sub-card-desc">long-term subscription with maximum value for regular players.</p>
+            <div class="sub-card-price-row">
+              <span class="sub-price-num">$139.99</span>
+              <span class="sub-price-unit">/ 90 days usd</span>
+            </div>
+            <div class="sub-card-divider"></div>
+            <ul class="sub-card-perks">
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
+              </li>
+              <li>
+                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
+              </li>
+            </ul>
+            <div class="sub-card-divider"></div>
+            <button type="button" class="sub-card-btn" data-quick-plan="3 month" data-quick-price="139.99">add 3 month to cart</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- featured product spotlight -->
       <div class="home-mini-shop">
         <div class="mini-shop-header">
           <h2 class="mini-shop-title highlighted">our best seller</h2>
@@ -268,18 +521,44 @@
 
       <!-- under those: system requirements and features -->
       <div class="product-bottom-section">
-        <div class="system-requirements-card">
+        <div class="system-requirements-card rdc-reqs-card">
           <div class="requirements-header">
             <svg class="req-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
             <h3 class="req-title">system requirements</h3>
           </div>
-          <div class="req-body">
-            <span class="req-spec">windows 10/11, cpus amd, intel</span>
+          <div class="req-specs-grid">
+            <div class="req-spec-cell">
+              <span class="req-cell-label">status</span>
+              <span class="req-cell-val val-green">undetected</span>
+            </div>
+            <div class="req-spec-cell">
+              <span class="req-cell-label">cpus</span>
+              <span class="req-cell-val">amd, intel</span>
+            </div>
+            <div class="req-spec-cell">
+              <span class="req-cell-label">system</span>
+              <span class="req-cell-val">windows 10/11</span>
+            </div>
+            <div class="req-spec-cell">
+              <span class="req-cell-label">userbase</span>
+              <span class="req-cell-val">small private</span>
+            </div>
+            <div class="req-spec-cell">
+              <span class="req-cell-label">delivery</span>
+              <span class="req-cell-val">instant key</span>
+            </div>
+            <div class="req-spec-cell">
+              <span class="req-cell-label">support</span>
+              <span class="req-cell-val">discord</span>
+            </div>
           </div>
         </div>
 
         <div class="features-wrapper">
-          <div class="features-main-title">features</div>
+          <div class="features-header-row">
+            <div class="features-main-title highlighted">features</div>
+            <button type="button" class="btn-features-toggle" id="toggle-all-features-btn">show all features</button>
+          </div>
           <div class="features-accordion">
             <!-- 1. aimbot & silent -->
             <div class="accordion-item">
@@ -899,18 +1178,35 @@
 
   <!-- footer -->
   <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-left">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
         <span class="footer-brand">chudcheats.xyz</span>
-        <span class="footer-slogan">"created control."</span>
+        <div class="footer-slogans-row">
+          <span class="footer-slogan">"created control."</span>
+          <span class="footer-seller-slogan">"if everyone is cheating nobody is."</span>
+        </div>
+        <p class="footer-disclaimer">digital license keys are final sale. third-party software use is at your own risk.</p>
       </div>
-      <div class="footer-center">
-        <span class="footer-seller-slogan">"if everyone is cheating nobody is."</span>
+      <div class="footer-col">
+        <h4 class="footer-col-title">navigation</h4>
+        <button class="footer-link nav-link-btn" data-tab="home">home</button>
+        <button class="footer-link nav-link-btn" data-tab="shop">shop</button>
+        <button class="footer-link nav-link-btn" data-tab="status">status</button>
+        <button class="footer-link nav-link-btn" data-tab="setup-guides">setup guides</button>
       </div>
-      <div class="footer-right">
-        <button class="footer-link nav-link-btn" data-tab="tos">tos</button>
+      <div class="footer-col">
+        <h4 class="footer-col-title">our products</h4>
+        <button class="footer-link nav-link-btn" data-tab="product">rust elite</button>
+        <button class="footer-link nav-link-btn" data-tab="my-keys">my keys</button>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">links</h4>
+        <button class="footer-link nav-link-btn" data-tab="tos">terms of service</button>
         <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">support discord</a>
       </div>
+    </div>
+    <div class="footer-bottom">
+      <span>2026 &copy; chudcheats.xyz</span>
     </div>
   </footer>
 
