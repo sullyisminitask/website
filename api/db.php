@@ -52,6 +52,7 @@ function getDatabaseConnection(): PDO {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     $pdo->exec('PRAGMA busy_timeout = 5000;');
+    $pdo->exec('PRAGMA foreign_keys = ON;');
 
     // Initial table creation if new database
     if ($isNew || filesize($dbFile) === 0) {

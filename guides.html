@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>setup guides — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+  <nav class="links"><a href="shop.html">shop</a><a href="index.html#status">status</a><a href="guides.html" class="on">setup guides</a><a href="https://discord.gg/Et76gjWDX2">support</a><a href="dashboard.html">my keys</a></nav>
+  <div class="right"><a class="btn btn-ghost guest-only" href="login.html">sign in</a><a class="user-chip" href="dashboard.html"><i data-user-init></i><span data-user-name></span></a><a class="cart" href="cart.html"><span>cart</span><b data-cart-count>0</b></a></div>
+</header>
+
+<main class="page">
+  <div class="page-head"><div><div class="crumbs"><a href="index.html">home</a> / setup guides</div><h1>setup guides<br><span class="muted" style="color:var(--ink-3)">from key to first raid</span></h1><p>about five minutes start to finish. stuck anywhere? open a ticket on discord.</p></div>
+    <a class="btn btn-acc" href="https://discord.gg/Et76gjWDX2">open a ticket</a></div>
+  <div class="guide">
+    <nav class="toc" id="toc">
+      <a href="#before">before you start</a><a href="#key">1 · get your key</a><a href="#loader">2 · download the loader</a><a href="#activate">3 · activate your key</a>
+      <a href="#launch">4 · launch and open the menu</a><a href="#configs">5 · configs</a><a href="#trouble">troubleshooting</a>
+    </nav>
+    <div>
+      <section class="gstep" id="before"><span class="n">00</span><h2>before you start</h2>
+        <p>orbit runs on windows 10 and 11 (64-bit) with rust from steam. check the status board first: if rust just patched, it says "updating" until it's safe.</p>
+        <div class="callout info">check <a href="index.html#status" style="text-decoration:underline">status</a> before every session. if it isn't green, wait.</div></section>
+      <section class="gstep" id="key"><span class="n">01</span><h2>get your key</h2>
+        <ol><li>pick a key length in the <a href="shop.html" style="color:var(--accent)">shop</a> and check out.</li><li>the key appears in <a href="dashboard.html" style="color:var(--accent)">my keys</a> straight away, with a copy button.</li></ol></section>
+      <section class="gstep" id="loader"><span class="n">02</span><h2>download the loader</h2>
+        <ol><li>open <b>my keys</b> and press <b>download loader</b> next to your key.</li><li>save it somewhere you'll find it, for example a folder on your desktop.</li><li>always download it again from my keys after an update. don't use copies from anywhere else.</li></ol></section>
+      <section class="gstep" id="activate"><span class="n">03</span><h2>activate your key</h2>
+        <ol><li>open the loader and sign in with your chudcheats account.</li><li>paste your key and press <b>activate</b>.</li><li>the key locks to this pc (hwid). you can reset it from my keys if you change pc.</li></ol>
+        <div class="callout">one key, one pc. 7-day keys include 1 hwid reset and 30-day keys include 2.</div></section>
+      <section class="gstep" id="launch"><span class="n">04</span><h2>launch and open the menu</h2>
+        <ol><li>start rust and wait for the main menu.</li><li>press <b>launch orbit</b> in the loader. it shows "running" when it's attached.</li><li>in game, press <kbd>insert</kbd> to open or close the menu.</li></ol></section>
+      <section class="gstep" id="configs"><span class="n">05</span><h2>configs</h2>
+        <p>three configs ship with the loader: <code>legit</code> (the default), <code>rage</code> and <code>streamer</code>, which turns on the stream-proof overlay. switch between them in the loader or the menu, and your changes save per config.</p></section>
+      <section class="gstep" id="trouble"><span class="n">06</span><h2>troubleshooting</h2>
+        <ol><li><b>loader says "waiting for rust"</b>: start rust first and wait for the main menu.</li><li><b>"key locked to another pc"</b>: reset the hwid in my keys, or ask support.</li><li><b>status says "updating"</b>: rust patched. wait for the status board to go green.</li><li><b>anything else</b>: open a ticket on discord with a screenshot of the loader.</li></ol></section>
+    </div>
+  </div>
+</main>
+
+<footer class="mini-foot"><span>chudcheats.xyz · <span class="mono" style="color:var(--accent)">"created control."</span></span><div><a href="terms.html">tos</a><a href="terms.html#refunds">refunds</a><a href="https://discord.gg/Et76gjWDX2">support discord</a></div></footer>
+<script src="site.js"></script>
+<script>
+(() => { const { $$ } = CC; const links = $$('#toc a'), secs = links.map(a => document.querySelector(a.getAttribute('href')));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-30% 0px -60% 0px' });
+  secs.forEach(s => s && io.observe(s)); })();
+</script>
+</body>
+</html>

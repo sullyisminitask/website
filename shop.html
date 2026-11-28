@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>orbit — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+  <nav class="links"><a href="shop.html" class="on">shop</a><a href="index.html#status">status</a><a href="guides.html">setup guides</a><a href="https://discord.gg/Et76gjWDX2">support</a><a href="dashboard.html">my keys</a></nav>
+  <div class="right"><a class="btn btn-ghost guest-only" href="login.html">sign in</a><a class="user-chip" href="dashboard.html"><i data-user-init></i><span data-user-name></span></a><a class="cart" href="cart.html"><span>cart</span><b data-cart-count>0</b></a></div>
+</header>
+
+<main class="page">
+  <div class="crumbs"><a href="index.html">home</a> / <a href="shop.html">shop</a> / orbit</div>
+  <div class="prod-grid">
+    <div>
+      <div class="gallery" id="gal" style="background-image:url(img/esp.jpg)"><span class="tagq">● undetected · build 2611.28</span></div>
+      <div class="thumbs">
+        <button class="on" style="background-image:url(img/esp.jpg)" data-img="img/esp.jpg" aria-label="view 1"></button>
+        <button style="background-image:url(img/hero.jpg)" data-img="img/hero.jpg" aria-label="view 2"></button>
+        <button style="background-image:url(img/tower.jpg)" data-img="img/tower.jpg" aria-label="view 3"></button>
+        <button style="background-image:url(img/shack.jpg)" data-img="img/shack.jpg" aria-label="view 4"></button>
+      </div>
+    </div>
+    <div class="buy">
+      <span class="st y" style="margin:0">best seller</span>
+      <h1>orbit</h1>
+      <p>an external rust cheat with esp, legit aim and misc in one menu. a small userbase keeps detections rare. look below for the full feature list.</p>
+      <div class="tiers" id="tiers">
+        <label class="tier"><input type="radio" name="t" value="1d"><div><b>1 day</b><small>try it on a wipe day</small></div><span class="pr">$7.99</span></label>
+        <label class="tier"><input type="radio" name="t" value="7d" checked><div><b>7 days <span class="st b">most picked</span></b><small>a full wipe week · 1 hwid reset</small></div><span class="pr">$19.99</span></label>
+        <label class="tier"><input type="radio" name="t" value="30d"><div><b>30 days</b><small>monthly wipes · 2 hwid resets</small></div><span class="pr">$39.99</span></label>
+      </div>
+      <div class="buy-row">
+        <div class="qty"><button type="button" id="minus" aria-label="less">−</button><span id="q">1</span><button type="button" id="plus" aria-label="more">+</button></div>
+        <button class="btn btn-line" id="addb">add to cart</button>
+        <button class="btn btn-acc" id="buyb">buy now · <span id="tot">$19.99</span></button>
+      </div>
+      <div class="perks">
+        <div><svg viewBox="0 0 16 16"><path d="M3.5 8.3l2.8 2.7 6.2-6.3"/></svg>key delivered instantly</div>
+        <div><svg viewBox="0 0 16 16"><path d="M3.5 8.3l2.8 2.7 6.2-6.3"/></svg>24/7 support on discord</div>
+        <div><svg viewBox="0 0 16 16"><path d="M3.5 8.3l2.8 2.7 6.2-6.3"/></svg>updated after rust patches</div>
+        <div><svg viewBox="0 0 16 16"><path d="M3.5 8.3l2.8 2.7 6.2-6.3"/></svg>windows 10 / 11, 64-bit</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flist">
+    <div class="box-c"><h3><i><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.5"/><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/></svg></i>visuals</h3>
+      <ul><li>player esp: name, distance, weapon, health</li><li>sleepers and sleeping bags</li><li>loot: crates, ore, hemp</li><li>colour and range per layer</li></ul></div>
+    <div class="box-c"><h3><i><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></i>aim</h3>
+      <ul><li>adjustable fov and smoothing</li><li>recoil control</li><li>target: closest to crosshair</li><li>legit config by default</li></ul></div>
+    <div class="box-c"><h3><i><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M8 2v12M2 8h12"/></svg></i>misc</h3>
+      <ul><li>2d radar</li><li>clean crosshair</li><li>stream-proof overlay</li><li>configs: legit, rage, streamer</li></ul></div>
+  </div>
+</main>
+
+<footer class="mini-foot"><span>chudcheats.xyz · <span class="mono" style="color:var(--accent)">"if everyone is cheating nobody is."</span></span><div><a href="terms.html">tos</a><a href="terms.html#refunds">refunds</a><a href="https://discord.gg/Et76gjWDX2">support discord</a></div></footer>
+
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, $$, TIERS, money } = CC;
+let q = 1;
+const tier = () => $('#tiers input:checked').value;
+const paint = () => { $('#q').textContent = q; $('#tot').textContent = money(TIERS[tier()].price * q); };
+$$('#tiers input').forEach(i => i.onchange = paint);
+$('#minus').onclick = () => { q = Math.max(1, q - 1); paint(); };
+$('#plus').onclick = () => { q = Math.min(10, q + 1); paint(); };
+$('#addb').onclick = () => CC.add(tier(), q);
+$('#buyb').onclick = () => { CC.add(tier(), q); location.href = 'cart.html'; };
+$$('.thumbs button').forEach(b => b.onclick = () => { $$('.thumbs button').forEach(x => x.classList.toggle('on', x === b)); $('#gal').style.backgroundImage = `url(${b.dataset.img})`; });
+const pre = new URLSearchParams(location.search).get('tier'); if (TIERS[pre]) $(`#tiers input[value="${pre}"]`).checked = true;
+paint();
+})();
+</script>
+</body>
+</html>

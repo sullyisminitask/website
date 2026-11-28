@@ -1,1221 +1,486 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>chudcheats.xyz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chudcheats.xyz — undetected rust cheats</title>
+<meta name="description" content="orbit: an external rust cheat with esp, aim and misc in one menu. small userbase, 24/7 support, updated after every rust patch.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="stylesheet" href="kit.css">
+<link rel="stylesheet" href="site.css">
+<style>
+
+/* hero */
+.sky{background-image:url(img/hero.jpg);top:-40px;bottom:-140px;background-position:center 82%}
+.hill{background-image:linear-gradient(transparent 70%,rgba(5,8,13,.55)),url(img/hill-front.webp)}
+.hero .nav .logo{font:500 16px var(--sans);letter-spacing:-.02em}
+.hero .nav .logo b{color:var(--accent);font-weight:500}
+.hero-copy .tags{display:flex;gap:6px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.r-center .hero-copy h1{font-size:clamp(46px,5vw,72px);line-height:.98}
+.pill .dot{width:8px;height:8px;border-radius:99px;background:var(--ok-dot);box-shadow:0 0 0 3px rgba(63,208,139,.2);margin:0 2px 0 6px}
+
+/* the loader, planted in the ridge */
+@media (min-width:1101px){.app{grid-template-columns:196px 1fr 280px}}
+.app .canvas{background:var(--ui-soft);background-image:radial-gradient(var(--ui-dot) 1px,transparent 1px);padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start}
+.lc{background:var(--ui-bg);border:1px solid var(--ui-line);border-radius:10px;padding:12px 14px}
+.lc .k{font:500 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ui-ink-3);display:flex;justify-content:space-between}
+.lc .key{font:500 15px var(--mono);margin-top:8px;letter-spacing:.02em}
+.lc .exp{display:flex;justify-content:space-between;margin-top:10px;color:var(--ui-ink-2)}
+.lc .exp b{font:500 12px var(--mono);color:var(--ui-ink);display:inline-block}
+.launch{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.launch .go{height:40px;padding:0 18px;border-radius:7px;background:var(--accent);color:var(--on-accent);font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background .4s,color .4s}
+.launch .go.wait{background:var(--ui-line);color:var(--ui-ink-2)}
+.launch .go.on{background:var(--ok-soft);color:var(--ok)}
+.launch .lmsg{color:var(--ui-ink-2);font:12px var(--mono)}
+.tg{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.tg + .tg{border-top:1px solid var(--ui-line)}
+.tg span{color:var(--ui-ink-2)}.tg span b{color:var(--ui-ink);font-weight:500;display:block;font-size:12px}
+.sw{width:30px;height:17px;border-radius:99px;background:var(--ui-line);position:relative;transition:background .3s;flex:none}
+.sw:after{content:"";position:absolute;left:2px;top:2px;width:13px;height:13px;border-radius:99px;background:#fff;transition:translate .3s var(--ease)}
+.sw.on{background:var(--accent)}.sw.on:after{translate:13px 0}
+.sld{margin-top:4px}
+.sld .row{display:flex;justify-content:space-between;color:var(--ui-ink-2)}.sld .row b{font:500 11.5px var(--mono);color:var(--ui-ink)}
+.sld .track{height:4px;border-radius:99px;background:var(--ui-line);margin-top:7px;position:relative}
+.sld .track i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent);width:var(--v);transition:width .9s var(--ease)}
+.sld .track i:after{content:"";position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:99px;background:#fff}
+.sess .rows div{height:29px}
+.sess .rows .v{font:11.5px var(--mono)}
+.graph{height:62px;border:1px solid var(--ui-line);border-radius:8px;position:relative;overflow:hidden}
+.graph svg{position:absolute;inset:0;width:100%;height:100%}
+.graph span{position:absolute;left:8px;top:6px;font:10px var(--mono);color:var(--ui-ink-3)}
+
+/* ticker of trust facts under the hero */
+.facts{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);margin-top:56px}
+.facts > div{padding:22px 24px;display:flex;align-items:center;gap:14px}
+.facts > div + div{border-left:1px solid var(--line)}
+.facts i{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.facts i svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.7}
+.facts b{display:block;font-weight:500;font-size:15px}.facts small{color:var(--ink-3);font-size:12.5px}
+
+/* features: esp drawn over the world */
+.featimg{background:#0b1119 url(img/esp.jpg) center/cover;min-height:560px}
+.feat .seg{background:var(--card);border:1px solid var(--line)}
+.feat .seg button{color:var(--ink-2)}.feat .seg button.on{background:var(--accent);color:var(--on-accent)}
+.feat .seg button.on::after{background:var(--on-accent);opacity:.5}
+.ovl{position:absolute;inset:0;pointer-events:none}
+.box{position:absolute;border:1.5px solid var(--accent);border-radius:2px;transition:left .9s var(--ease),top .9s var(--ease),width .9s var(--ease),height .9s var(--ease)}
+.box .lb{position:absolute;left:-1.5px;bottom:calc(100% + 4px);white-space:nowrap;font:500 10.5px var(--mono);color:#e9f6ff;background:rgba(3,10,18,.72);padding:2px 6px;border-radius:3px}
+.box .hp{position:absolute;left:-7px;top:0;bottom:0;width:3px;background:rgba(0,0,0,.5);border-radius:2px}
+.box .hp i{position:absolute;left:0;right:0;bottom:0;background:var(--ok-dot);border-radius:2px;height:var(--h)}
+.box .dist{position:absolute;left:50%;top:calc(100% + 4px);translate:-50% 0;font:10.5px var(--mono);color:#cfe9ff;white-space:nowrap}
+.box.low .lb{bottom:auto;top:calc(100% + 20px);left:auto;right:-1.5px}
+.fovc{position:absolute;border:1px solid rgba(143,211,255,.7);border-radius:99px;translate:-50% -50%}
+.aimln{position:absolute;height:1px;background:var(--accent);transform-origin:0 50%}
+.radar{position:absolute;right:16px;top:16px;width:150px;height:150px;border-radius:12px;background:rgba(5,10,18,.78);border:1px solid rgba(143,211,255,.25);backdrop-filter:blur(6px)}
+.radar:before,.radar:after{content:"";position:absolute;background:rgba(143,211,255,.18)}
+.radar:before{left:50%;top:8px;bottom:8px;width:1px}.radar:after{top:50%;left:8px;right:8px;height:1px}
+.radar i{position:absolute;width:7px;height:7px;border-radius:99px;translate:-50% -50%;transition:left 1.2s var(--ease),top 1.2s var(--ease)}
+.radar i.me{background:#fff;left:50%;top:50%}.radar i.p{background:var(--bad)}.radar i.l{background:var(--warn-dot)}
+.menu-card{position:absolute;left:16px;bottom:16px;width:250px}
+.panel .tag-chip{position:absolute;left:16px;top:16px}
+
+/* status board */
+.stat{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);overflow:hidden}
+.stat-top{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.stat-top b{font-weight:500}.stat-top .sp{flex:1}.stat-top small{color:var(--ink-3);font:12px var(--mono)}
+.srow{display:grid;grid-template-columns:200px 1fr 150px;gap:20px;align-items:center;padding:16px 22px}
+.srow + .srow{border-top:1px solid var(--line)}
+.srow b{font-weight:500}.srow small{display:block;color:var(--ink-3);font-size:12px}
+.bars{display:flex;gap:2px;height:28px}
+.bars i{flex:1;border-radius:2px;background:var(--ok-dot);opacity:.85}
+.bars i.y{background:var(--warn-dot)}.bars i.r{background:var(--bad)}
+.srow .st{justify-self:end;margin:0;font-size:11px;padding:3px 9px}
+
+/* three world plates */
+.wplates{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:12px}
+.wp{position:relative;height:400px;border-radius:var(--r-card);overflow:hidden;background-size:cover;background-position:center}
+.wp .cap{position:absolute;left:0;right:0;bottom:0;padding:22px;background:linear-gradient(transparent,rgba(3,7,12,.85))}
+.wp .cap h3{font:500 16px var(--sans)}.wp .cap p{color:var(--ink-2);font-size:13.5px;margin-top:4px;max-width:340px}
+.wp .card-in,.wp .mini{position:absolute}
+.wp .card-in{width:270px;font-size:11.5px}
+
+/* announcements: discord-style feed */
+.feedwrap{display:grid;grid-template-columns:1fr 1.25fr;gap:72px;align-items:center}
+.feedwrap .h2{margin-top:18px}
+.feedwrap p.l{color:var(--ink-2);max-width:420px;margin-top:16px}
+.dc{border:1px solid var(--line);border-radius:var(--r-card);background:var(--card);overflow:hidden}
+.dc-top{display:flex;align-items:center;gap:10px;height:48px;padding:0 18px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+.dc-top b{color:var(--ink);font-weight:500}.dc-top .sp{flex:1}
+.dc-body{padding:10px 18px 18px;display:flex;flex-direction:column;gap:4px;min-height:360px;justify-content:flex-end}
+.msg{display:grid;grid-template-columns:36px 1fr;gap:12px;padding:10px 0}
+.msg .av{width:36px;height:36px;border-radius:99px;background:var(--accent);display:grid;place-items:center;color:var(--on-accent);font:600 13px var(--sans)}
+.msg .hd{display:flex;align-items:baseline;gap:8px}.msg .hd b{font-weight:500;font-size:14px}.msg .hd small{color:var(--ink-3);font-size:11.5px}
+.msg .hd em{font-style:normal;font:500 9.5px var(--mono);background:var(--accent-soft);color:var(--accent);padding:1px 5px;border-radius:3px}
+.msg p{color:var(--ink-2);font-size:14px;margin-top:3px}
+.msg p code{font:12px var(--mono);color:var(--ink);background:var(--soft);padding:1px 5px;border-radius:3px}
+
+.how{background:linear-gradient(var(--panel),var(--panel)) padding-box;border:1px solid var(--line)}
+.how .badge i{background:var(--accent)}.how .badge i svg{stroke:var(--on-accent)}
+.how .split p{color:var(--ink-2)}
+.steps .ic{background:var(--accent)}.steps .ic svg{stroke:var(--on-accent)}
+.plan.hl{background:#0e1826;border:1px solid rgba(143,211,255,.35)}
+.plan.hl .tab{background:var(--accent);color:var(--on-accent)}
+.plan .btn-line{background:transparent}
+.toggle{display:none}
+
+.faq2{display:grid;grid-template-columns:1fr 1.5fr;gap:72px;align-items:start}
+.faq2 .f2-l{position:sticky;top:100px}.faq2 .f2-l p{color:var(--ink-2);margin-top:18px;max-width:320px}
+.faq2 .f2-l a{color:var(--accent)}
+.faq2 .faq{margin:0;max-width:none}
+
+.cta .bg{background-image:url(img/cta.jpg)}
+main > section.cta{margin-top:var(--sec)}
+.cta h2{text-shadow:0 2px 30px rgba(0,0,0,.4)}
+.cta .tags{display:flex;gap:6px;justify-content:center;margin-bottom:22px}
+.giant.plain span{color:#0e1722;-webkit-text-stroke:1px #2a3a4f}
+.fbottom .mono{color:var(--accent)}
+
+@media (max-width:1100px){.facts{grid-template-columns:1fr 1fr}.facts > div:nth-child(3){border-left:0}.facts > div:nth-child(n+3){border-top:1px solid var(--line)}
+  .wplates,.feedwrap{grid-template-columns:1fr}.srow{grid-template-columns:1fr 110px}.srow .bars{grid-column:1/-1;grid-row:2}.faq2{grid-template-columns:1fr;gap:32px}.faq2 .f2-l{position:static}}
+@media (max-width:760px){.facts{grid-template-columns:1fr}.facts > div + div{border-left:0;border-top:1px solid var(--line)}.app .canvas{grid-template-columns:1fr}
+  .wp{height:340px}.radar{width:110px;height:110px}.giant.plain span{font-size:16.5vw}.menu-card{width:200px}.hero-copy .tags{display:none}.cart span{display:none}}
+</style>
 </head>
 <body>
-  <!-- atmospheric radial glows (rdc.zone aesthetic) -->
-  <div class="bg-grid-overlay" aria-hidden="true"></div>
-  <div class="bg-glow-top" aria-hidden="true"></div>
-  <div class="bg-glow-corner" aria-hidden="true"></div>
-
-  <!-- top banner -->
-  <header class="top-banner">
-    <div class="banner-inner">
-      <div class="banner-brand">
-        <a href="#home" class="brand-link" id="brand-logo">chudcheats.xyz</a>
-      </div>
-      <nav class="banner-nav">
-        <button class="nav-tab" data-tab="shop">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span>shop</span>
-        </button>
-        <button class="nav-tab" data-tab="status">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          <span>status</span>
-        </button>
-        <button class="nav-tab" data-tab="setup-guides">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-          <span>setup guides</span>
-        </button>
-        <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="nav-tab support-tab">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span>support</span>
-        </a>
-        <button class="nav-tab" data-tab="my-keys">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-          <span>my keys</span>
-        </button>
-      </nav>
-      <div class="banner-right">
-        <button class="account-btn" id="open-account-btn" title="account">
-          <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span class="account-btn-label" id="account-btn-text">account</span>
-        </button>
-        <button class="cart-btn" id="open-cart-btn" title="cart">
-          <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-          <span class="cart-count" id="cart-counter">0</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="main-content">
-    <!-- home view (hero area + distinct advantages + subscription pricing) -->
-    <section class="page-view active" id="view-home">
-      <div class="hero-stage">
-        <div class="hero-container">
-          <div class="hero-left">
-            <div class="hero-eyebrow">#1 provider</div>
-            <h1 class="hero-title highlighted">chudcheats.xyz</h1>
-            <p class="hero-subtitle">for your undetected game cheats.</p>
-            <div class="hero-copy-block">
-              <p class="hero-intro-line">built with a small private userbase keeping detections rare.</p>
-              <p class="hero-intro-line">24/7 questions &amp; setup help in <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="inline-discord-link">discord</a>.</p>
-            </div>
-            <div class="hero-slogans">
-              <span class="slogan-badge">"created control."</span>
-              <span class="slogan-badge seller">"if everyone is cheating nobody is."</span>
-            </div>
-            <div class="hero-actions">
-              <button class="btn-primary" data-action="go-shop">browse shop</button>
-              <button class="btn-secondary" data-action="go-product">view rust orbit</button>
-            </div>
-          </div>
-
-          <div class="hero-right">
-            <div class="hero-image-wrap">
-              <img src="assets/rust-orbit.jpg" alt="rust orbit" class="hero-image">
-            </div>
-
-            <!-- rdc-inspired interactive launcher card -->
-            <div class="hero-launcher-card" id="hero-launcher-card">
-              <div class="launcher-titlebar">
-                <span class="launcher-brand">chudcheats.xyz</span>
-                <div class="launcher-win-btns" aria-hidden="true">
-                  <span>&#8212;</span>
-                  <span>&#9633;</span>
-                  <span>&#215;</span>
-                </div>
-              </div>
-              <div class="launcher-body">
-                <div class="launcher-greeting">
-                  <span class="launcher-hello">rust orbit</span>
-                  <span class="launcher-welcome">windows 10/11 &bull; amd, intel</span>
-                </div>
-                <div class="launcher-field">
-                  <span class="launcher-label">subscription</span>
-                  <div class="launcher-pills" id="launcher-plan-pills">
-                    <button type="button" class="launcher-pill" data-launcher-plan="1 day" data-launcher-price="7.99">1 day</button>
-                    <button type="button" class="launcher-pill active" data-launcher-plan="3 day" data-launcher-price="16.99">3 day</button>
-                    <button type="button" class="launcher-pill" data-launcher-plan="week" data-launcher-price="25.99">week</button>
-                  </div>
-                </div>
-                <div class="launcher-field">
-                  <span class="launcher-label">status</span>
-                  <div class="launcher-status-row">
-                    <span class="launcher-status-pill active-green">undetected</span>
-                    <span class="launcher-price-preview" id="launcher-price-preview">$16.99 usd</span>
-                  </div>
-                </div>
-                <button type="button" class="launcher-cta-btn" data-action="go-product">view product</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" class="hero-scroll-hint" id="hero-scroll-hint" aria-label="scroll to features">
-          <span class="scroll-mouse"><span class="scroll-wheel"></span></span>
-          <span class="scroll-label">scroll</span>
-        </button>
-      </div>
-
-      <!-- rdc-style 3x2 distinct advantages bento grid -->
-      <section class="advantages-section" id="home-advantages">
-        <div class="advantages-grid">
-          <div class="advantages-intro-cell">
-            <h2 class="advantages-heading highlighted">created control.</h2>
-            <p class="advantages-subtext">a focused rust platform built for a small userbase, rapid updates, and full customization.</p>
-          </div>
-
-          <div class="advantage-card">
-            <span class="advantage-watermark" aria-hidden="true">userbase</span>
-            <div class="advantage-title-row">
-              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-              <h3 class="advantage-title">small userbase</h3>
-            </div>
-            <p class="advantage-desc">kept private by design so detection vectors remain rare across anti-cheat checks.</p>
-          </div>
-
-          <div class="advantage-card">
-            <span class="advantage-watermark" aria-hidden="true">customizable</span>
-            <div class="advantage-title-row">
-              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>
-              <h3 class="advantage-title">highly customizable</h3>
-            </div>
-            <p class="advantage-desc">memory &amp; silent aim, smoothing, custom fov, radar, chams, and world visuals tailored to you.</p>
-          </div>
-
-          <div class="advantage-card">
-            <span class="advantage-watermark" aria-hidden="true">updates</span>
-            <div class="advantage-title-row">
-              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-              <h3 class="advantage-title">active updates</h3>
-            </div>
-            <p class="advantage-desc">live status monitoring before every session so you know exact availability at a glance.</p>
-          </div>
-
-          <div class="advantage-card">
-            <span class="advantage-watermark" aria-hidden="true">support</span>
-            <div class="advantage-title-row">
-              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              <h3 class="advantage-title">helpful support</h3>
-            </div>
-            <p class="advantage-desc">direct assistance through our discord community whenever you need setup or key help.</p>
-          </div>
-
-          <div class="advantage-card">
-            <span class="advantage-watermark" aria-hidden="true">instant</span>
-            <div class="advantage-title-row">
-              <svg class="advantage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-              <h3 class="advantage-title">instant delivery</h3>
-            </div>
-            <p class="advantage-desc">keys generate immediately on purchase and sync directly into your my keys dashboard.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- rdc-style subscription cards showcase -->
-      <section class="subscription-section" id="home-subscription">
-        <div class="subscription-header">
-          <h2 class="subscription-title highlighted">subscription</h2>
-          <p class="subscription-subtitle">select the desired subscription period &mdash; all pricing in usd</p>
-        </div>
-
-        <div class="subscription-cards-grid">
-          <div class="sub-card">
-            <div class="sub-card-top">
-              <div class="sub-card-icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
-            </div>
-            <h3 class="sub-card-title">1 day</h3>
-            <p class="sub-card-desc">ideal for testing rust orbit without a longer commitment.</p>
-            <div class="sub-card-price-row">
-              <span class="sub-price-num">$7.99</span>
-              <span class="sub-price-unit">/ 1 day usd</span>
-            </div>
-            <div class="sub-card-divider"></div>
-            <ul class="sub-card-perks">
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
-              </li>
-            </ul>
-            <div class="sub-card-divider"></div>
-            <button type="button" class="sub-card-btn" data-quick-plan="1 day" data-quick-price="7.99">add 1 day to cart</button>
-          </div>
-
-          <div class="sub-card featured-sub-card">
-            <div class="sub-card-top">
-              <div class="sub-card-icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </div>
-              <span class="sub-popular-pill">best seller</span>
-            </div>
-            <h3 class="sub-card-title">3 day</h3>
-            <p class="sub-card-desc">our most popular short-run license for full weekend wipes.</p>
-            <div class="sub-card-price-row">
-              <span class="sub-price-num">$16.99</span>
-              <span class="sub-price-unit">/ 3 days usd</span>
-            </div>
-            <div class="sub-card-divider"></div>
-            <ul class="sub-card-perks">
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
-              </li>
-            </ul>
-            <div class="sub-card-divider"></div>
-            <button type="button" class="sub-card-btn primary-sub-btn" data-quick-plan="3 day" data-quick-price="16.99">add 3 day to cart</button>
-          </div>
-
-          <div class="sub-card">
-            <div class="sub-card-top">
-              <div class="sub-card-icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </div>
-            </div>
-            <h3 class="sub-card-title">week</h3>
-            <p class="sub-card-desc">seven days of complete access for full weekly wipe cycles.</p>
-            <div class="sub-card-price-row">
-              <span class="sub-price-num">$25.99</span>
-              <span class="sub-price-unit">/ 7 days usd</span>
-            </div>
-            <div class="sub-card-divider"></div>
-            <ul class="sub-card-perks">
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
-              </li>
-            </ul>
-            <div class="sub-card-divider"></div>
-            <button type="button" class="sub-card-btn" data-quick-plan="week" data-quick-price="25.99">add week to cart</button>
-          </div>
-
-          <div class="sub-card">
-            <div class="sub-card-top">
-              <div class="sub-card-icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              </div>
-            </div>
-            <h3 class="sub-card-title">month</h3>
-            <p class="sub-card-desc">thirty days of uninterrupted control across monthly wipe servers.</p>
-            <div class="sub-card-price-row">
-              <span class="sub-price-num">$54.99</span>
-              <span class="sub-price-unit">/ 30 days usd</span>
-            </div>
-            <div class="sub-card-divider"></div>
-            <ul class="sub-card-perks">
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
-              </li>
-            </ul>
-            <div class="sub-card-divider"></div>
-            <button type="button" class="sub-card-btn" data-quick-plan="month" data-quick-price="54.99">add month to cart</button>
-          </div>
-
-          <div class="sub-card">
-            <div class="sub-card-top">
-              <div class="sub-card-icon-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/></svg>
-              </div>
-            </div>
-            <h3 class="sub-card-title">3 month</h3>
-            <p class="sub-card-desc">long-term subscription with maximum value for regular players.</p>
-            <div class="sub-card-price-row">
-              <span class="sub-price-num">$139.99</span>
-              <span class="sub-price-unit">/ 90 days usd</span>
-            </div>
-            <div class="sub-card-divider"></div>
-            <ul class="sub-card-perks">
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
-                <div><strong>full feature set</strong><span>aim, combat, visuals, radar &amp; chams</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
-                <div><strong>instant account sync</strong><span>key saved automatically to my keys</span></div>
-              </li>
-              <li>
-                <span class="perk-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-                <div><strong>helpful support</strong><span>direct discord ticket assistance</span></div>
-              </li>
-            </ul>
-            <div class="sub-card-divider"></div>
-            <button type="button" class="sub-card-btn" data-quick-plan="3 month" data-quick-price="139.99">add 3 month to cart</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- featured product spotlight -->
-      <div class="home-mini-shop">
-        <div class="mini-shop-header">
-          <h2 class="mini-shop-title highlighted">our best seller</h2>
-          <p class="mini-shop-subtitle">if everyone is cheating nobody is.</p>
-        </div>
-
-        <div class="mini-shop-card" id="home-mini-card">
-          <div class="mini-shop-card-left">
-            <div class="mini-shop-image-box">
-              <img src="assets/rust-orbit.jpg" alt="rust orbit" class="mini-shop-image">
-              <span class="mini-card-badge">undetected</span>
-            </div>
-          </div>
-          <div class="mini-shop-card-right">
-            <div class="mini-card-top-row">
-              <span class="mini-best-tag">best seller</span>
-              <h3 class="mini-product-title">rust orbit</h3>
-            </div>
-            <p class="mini-product-desc">our cheat currently has a small userbase making detctions rare from anti-cheats. look below for our feature list.</p>
-            <div class="mini-price-action-row">
-              <div class="mini-price-group">
-                <span class="mini-price-text">starts at $7.99 usd</span>
-                <button class="btn-browse" data-action="go-shop">browse</button>
-              </div>
-              <button class="btn-primary" data-action="go-product">view rust orbit</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- shop view -->
-    <section class="page-view" id="view-shop">
-      <div class="shop-hero">
-        <div class="search-container">
-          <div class="search-input-wrap">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="shop-search" class="search-input" placeholder="search cheats...">
-          </div>
-        </div>
-        <div class="stock-info">
-          <span id="stock-count">1</span> products in stock
-        </div>
-        <div class="categories-bar">
-          <span class="category-pill active">rust</span>
-        </div>
-      </div>
-
-      <div class="products-grid" id="products-grid">
-        <div class="product-card" id="card-rust-orbit">
-          <div class="card-badge-wrap">
-            <div class="card-badge undetected">undetected</div>
-          </div>
-          <div class="card-image-box">
-            <img src="assets/rust-orbit.jpg" alt="rust orbit" class="card-image">
-          </div>
-          <div class="card-title-box">
-            <h3 class="card-title">rust orbit</h3>
-          </div>
-          <div class="card-price-box">
-            <span class="card-price">starting from $7.99 usd</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- payment page (product detail & plans) -->
-    <section class="page-view" id="view-product">
-      <div class="product-detail-layout">
-        <!-- left side: product card -->
-        <div class="detail-left">
-          <div class="product-card showcase-card">
-            <div class="card-badge-wrap">
-              <div class="card-badge undetected">undetected</div>
-            </div>
-            <div class="card-image-box">
-              <img src="assets/rust-orbit.jpg" alt="rust orbit" class="card-image">
-            </div>
-            <div class="card-title-box">
-              <h3 class="card-title">rust orbit</h3>
-            </div>
-            <div class="card-price-box">
-              <span class="card-price">starting from $7.99 usd</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- right side: details and plans -->
-        <div class="detail-right">
-          <h2 class="bold-heading-title">rust orbit</h2>
-          
-          <div class="underglow-badges">
-            <span class="underglow-tag glow-green">
-              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-              <span>undetected</span>
-            </span>
-            <span class="underglow-tag glow-yellow">
-              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-              <span>best seller</span>
-            </span>
-            <span class="underglow-tag glow-blue">
-              <svg class="badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
-              <span>helpful support</span>
-            </span>
-          </div>
-
-          <p class="product-description">
-            rust orbit, if everyone is cheating is anyone? why not join them with the best cheat on the market. but what makes it good? our cheat currently has a small userbase making detctions rare from anti-cheats. look below for our feature list.
-          </p>
-
-          <div class="plans-section">
-            <div class="plans-title">select plan (usd)</div>
-            <div class="plans-grid">
-              <label class="plan-option" data-plan="1 day" data-price="7.99">
-                <input type="radio" name="plan" value="1 day" data-price="7.99">
-                <div class="plan-content">
-                  <div class="plan-name">1 day</div>
-                  <div class="plan-price">$7.99 usd</div>
-                </div>
-              </label>
-
-              <label class="plan-option best-seller-plan selected" data-plan="3 day" data-price="16.99">
-                <input type="radio" name="plan" value="3 day" data-price="16.99" checked>
-                <div class="plan-content">
-                  <div class="plan-top-row">
-                    <span class="plan-name">3 day</span>
-                    <span class="plan-tag">best seller</span>
-                  </div>
-                  <div class="plan-price">$16.99 usd</div>
-                </div>
-              </label>
-
-              <label class="plan-option" data-plan="week" data-price="25.99">
-                <input type="radio" name="plan" value="week" data-price="25.99">
-                <div class="plan-content">
-                  <div class="plan-name">week</div>
-                  <div class="plan-price">$25.99 usd</div>
-                </div>
-              </label>
-
-              <label class="plan-option" data-plan="month" data-price="54.99">
-                <input type="radio" name="plan" value="month" data-price="54.99">
-                <div class="plan-content">
-                  <div class="plan-name">month</div>
-                  <div class="plan-price">$54.99 usd</div>
-                </div>
-              </label>
-
-              <label class="plan-option" data-plan="3 month" data-price="139.99">
-                <input type="radio" name="plan" value="3 month" data-price="139.99">
-                <div class="plan-content">
-                  <div class="plan-name">3 month</div>
-                  <div class="plan-price">$139.99 usd</div>
-                </div>
-              </label>
-            </div>
-
-            <div class="plan-action-box">
-              <div class="selected-plan-summary">
-                <span class="summary-label">selected plan:</span>
-                <span class="summary-value" id="selected-plan-display">3 day ($16.99 usd)</span>
-              </div>
-              <button class="btn-add-to-cart" id="add-to-cart-btn">
-                <svg class="btn-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-                <span>add to cart</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- under those: system requirements and features -->
-      <div class="product-bottom-section">
-        <div class="system-requirements-card rdc-reqs-card">
-          <div class="requirements-header">
-            <svg class="req-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-            <h3 class="req-title">system requirements</h3>
-          </div>
-          <div class="req-specs-grid">
-            <div class="req-spec-cell">
-              <span class="req-cell-label">status</span>
-              <span class="req-cell-val val-green">undetected</span>
-            </div>
-            <div class="req-spec-cell">
-              <span class="req-cell-label">cpus</span>
-              <span class="req-cell-val">amd, intel</span>
-            </div>
-            <div class="req-spec-cell">
-              <span class="req-cell-label">system</span>
-              <span class="req-cell-val">windows 10/11</span>
-            </div>
-            <div class="req-spec-cell">
-              <span class="req-cell-label">userbase</span>
-              <span class="req-cell-val">small private</span>
-            </div>
-            <div class="req-spec-cell">
-              <span class="req-cell-label">delivery</span>
-              <span class="req-cell-val">instant key</span>
-            </div>
-            <div class="req-spec-cell">
-              <span class="req-cell-label">support</span>
-              <span class="req-cell-val">discord</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="features-wrapper">
-          <div class="features-header-row">
-            <div class="features-main-title highlighted">features</div>
-            <button type="button" class="btn-features-toggle" id="toggle-all-features-btn">show all features</button>
-          </div>
-          <div class="features-accordion">
-            <!-- 1. aimbot & silent -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>aimbot & silent</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>memory aim</li>
-                  <li>silent aim</li>
-                  <li>smoothing</li>
-                  <li>fov size</li>
-                  <li>draw fov</li>
-                  <li>aim line</li>
-                  <li>prediction</li>
-                  <li>prediction type</li>
-                  <li>dynamic fov</li>
-                  <li>ignore npcs</li>
-                  <li>ignore team</li>
-                  <li>visibility check</li>
-                  <li>ignore sleepers</li>
-                  <li>hitchance</li>
-                  <li>target bone</li>
-                  <li>hotkey</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 2. combat features -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>combat features</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>remove recoil</li>
-                  <li>x 0% - 100%</li>
-                  <li>y 0% - 100%</li>
-                  <li>remove spread</li>
-                  <li>fast bow</li>
-                  <li>instant eoka</li>
-                  <li>thick bullet</li>
-                  <li>bullet widith</li>
-                  <li>bullet tracers</li>
-                  <li>bullet tracer type</li>
-                  <li>aimbot targeting</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 3. visuals -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>visuals</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>box</li>
-                  <li>skeleton</li>
-                  <li>snaplines</li>
-                  <li>names</li>
-                  <li>steam avatar</li>
-                  <li>distance</li>
-                  <li>team id</li>
-                  <li>raid detector</li>
-                  <li>held item</li>
-                  <li>held style, picture, name</li>
-                  <li>hotbar</li>
-                  <li>amour</li>
-                  <li>oof arrows</li>
-                  <li>box style</li>
-                  <li>max distance</li>
-                  <li>draw dead</li>
-                  <li>chams > vis colour, invis colour</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 4. radar -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>radar</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>black circle</li>
-                  <li>real map</li>
-                  <li>transparency</li>
-                  <li>marker size</li>
-                  <li>range</li>
-                  <li>size</li>
-                  <li>localplayer</li>
-                  <li>teamates</li>
-                  <li>npcs</li>
-                  <li>enemy</li>
-                  <li>nodes</li>
-                  <li>hemp</li>
-                  <li>held items</li>
-                  <li>hotbar</li>
-                  <li>amour</li>
-                  <li>team colouring</li>
-                  <li>outline colours</li>
-                  <li>player count</li>
-                  <li>node count</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 5. world esp -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>world esp</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>all ores</li>
-                  <li>all crates</li>
-                  <li>all animals</li>
-                  <li>all vehicles</li>
-                  <li>range for all</li>
-                  <li>dropped items</li>
-                  <li>body bags</li>
-                  <li>player corpse</li>
-                  <li>npc corpses</li>
-                  <li>cupboards</li>
-                  <li>traps</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 6. misc -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>misc</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>watermark</li>
-                  <li>esp font</li>
-                  <li>xray</li>
-                  <li>custom fov</li>
-                  <li>zoom</li>
-                  <li>custom time</li>
-                  <li>bright night</li>
-                  <li>hand chams</li>
-                  <li>weapon chams</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 7. movement -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>movement</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>omni sprint</li>
-                  <li>no fall</li>
-                  <li>shoot while midair</li>
-                  <li>spiderman</li>
-                  <li>inf jump</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 8. settings -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>settings</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>accent colour</li>
-                  <li>menu key</li>
-                  <li>panic key</li>
-                  <li>config</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- 9. cham lists -->
-            <div class="accordion-item">
-              <button class="accordion-trigger">
-                <span>cham lists</span>
-                <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div class="accordion-content">
-                <ul class="feature-items">
-                  <li>green glow, glass , flat</li>
-                  <li>yellow glow, glass , flat</li>
-                  <li>red glow, glass , flat</li>
-                  <li>blue glow, glass , flat</li>
-                  <li>pink glow, glass , flat</li>
-                  <li>purple glow, glass , flat</li>
-                  <li>water droplet</li>
-                  <li>fire</li>
-                  <li>portal door</li>
-                  <li>wireframe</li>
-                  <li>chrome</li>
-                  <li>thru walls</li>
-                </ul>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- status view -->
-    <section class="page-view" id="view-status">
-      <div class="status-container">
-        <div class="status-search-wrap">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="text" id="status-search" class="search-input" placeholder="search status...">
-        </div>
-        
-        <div class="status-counters">
-          <div class="status-counter-box counter-undetected">
-            <span class="counter-num">1</span>
-            <span class="counter-label">undetected</span>
-          </div>
-          <div class="status-counter-box counter-updating">
-            <span class="counter-num">0</span>
-            <span class="counter-label">updating</span>
-          </div>
-          <div class="status-counter-box counter-not-working">
-            <span class="counter-num">0</span>
-            <span class="counter-label">not working</span>
-          </div>
-        </div>
-
-        <div class="status-card-list">
-          <div class="status-row-card" data-title="rust orbit">
-            <div class="status-row-left">
-              <span class="status-product-name">rust orbit</span>
-            </div>
-            <div class="status-row-separator">:</div>
-            <div class="status-row-right">
-              <span class="status-tag tag-undetected">undetected</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- setup guides view -->
-    <section class="page-view" id="view-setup-guides">
-      <div class="guides-container">
-        <div class="guides-header">
-          <h2 class="guides-title">setup guides</h2>
-          <p class="guides-subtitle">windows 10/11, cpus amd, intel</p>
-        </div>
-        <div class="guides-steps">
-          <div class="step-card">
-            <div class="step-number">1</div>
-            <div class="step-details">
-              <h4 class="step-title">system check</h4>
-              <p class="step-text">ensure your system meets requirements: windows 10/11, cpus amd, intel.</p>
-            </div>
-          </div>
-          <div class="step-card">
-            <div class="step-number">2</div>
-            <div class="step-details">
-              <h4 class="step-title">license key</h4>
-              <p class="step-text">obtain your key from the shop or enter it in the my keys section.</p>
-            </div>
-          </div>
-          <div class="step-card">
-            <div class="step-number">3</div>
-            <div class="step-details">
-              <h4 class="step-title">launch & play</h4>
-              <p class="step-text">start rust orbit before launching rust for undetected control.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- my keys view -->
-    <section class="page-view" id="view-my-keys">
-      <div class="keys-container">
-        <div class="keys-header">
-          <h2 class="keys-title highlighted">my keys</h2>
-          <p class="keys-subtitle">manage licenses, copy keys, and track orders</p>
-        </div>
-
-        <!-- account connection status bar -->
-        <div class="keys-account-bar" id="keys-account-bar">
-          <div class="account-bar-info">
-            <svg class="account-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span id="keys-account-status">not signed in — keys bought while signed out are stored locally. log in to sync across devices.</span>
-          </div>
-          <button class="btn-account-sync" id="keys-sync-btn">sign in / register</button>
-        </div>
-
-        <!-- real-time summary stats -->
-        <div class="keys-stats-grid">
-          <div class="keys-stat-box">
-            <span class="keys-stat-num" id="stat-total-keys">0</span>
-            <span class="keys-stat-label">total keys</span>
-          </div>
-          <div class="keys-stat-box">
-            <span class="keys-stat-num keys-stat-green" id="stat-active-keys">0</span>
-            <span class="keys-stat-label">active</span>
-          </div>
-          <div class="keys-stat-box">
-            <span class="keys-stat-num keys-stat-blue" id="stat-total-orders">0</span>
-            <span class="keys-stat-label">orders</span>
-          </div>
-        </div>
-
-        <div class="keys-card">
-          <div class="keys-toolbar">
-            <div class="keys-subtabs">
-              <button class="keys-subtab active" id="subtab-keys-btn" data-keys-tab="keys">
-                <svg class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-                <span>license keys</span>
-                <span class="keys-count-badge" id="keys-count-badge">0</span>
-              </button>
-              <button class="keys-subtab" id="subtab-orders-btn" data-keys-tab="orders">
-                <svg class="subtab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
-                <span>order history</span>
-                <span class="keys-count-badge" id="orders-count-badge">0</span>
-              </button>
-            </div>
-
-            <div class="keys-search-wrap" id="keys-search-wrap">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input type="text" id="keys-search-input" class="search-input keys-search-input" placeholder="search keys...">
-            </div>
-          </div>
-
-          <div id="key-feedback" class="key-feedback"></div>
-
-          <!-- license keys panel -->
-          <div class="keys-panel active" id="panel-keys">
-            <div class="keys-list" id="active-keys-list">
-              <div class="empty-keys-placeholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
-                <p>no license keys found in this account.</p>
-                <button class="btn-primary btn-sm" data-action="go-shop">browse shop to purchase</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- order history panel -->
-          <div class="keys-panel" id="panel-orders">
-            <div class="orders-list" id="order-history-list">
-              <div class="empty-keys-placeholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                <p>no orders found yet.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="redeem-separator">
-            <span>or bind an existing license key</span>
-          </div>
-
-          <div class="key-input-row">
-            <input type="text" id="license-key-input" class="key-input" placeholder="enter license key (e.g. rust-orbit-xxxx-xxxx)">
-            <button class="btn-redeem" id="redeem-key-btn">bind to account</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- tos view -->
-    <section class="page-view" id="view-tos">
-      <div class="tos-container">
-        <div class="tos-header">
-          <h2 class="tos-title highlighted">terms of service</h2>
-          <p class="tos-subtitle">chudcheats.xyz terms and conditions</p>
-        </div>
-        <div class="tos-content-card">
-          <div class="tos-section">
-            <h4 class="tos-section-title">1. digital goods & delivery</h4>
-            <p class="tos-text">all products offered on chudcheats.xyz are intangible digital license keys and downloadable software. delivery occurs immediately following successful payment.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">2. refund policy</h4>
-            <p class="tos-text">due to the nature of digital license keys and instant access, all sales are strictly final. no refunds, chargebacks, or exchanges will be provided under any circumstances once a license key has been generated or delivered.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">3. no liability for bans (use at your own risk)</h4>
-            <p class="tos-text">we are not liable or responsible under any circumstances for any in-game bans, account suspensions, hwid bans, developer sanctions, lost in-game items, or financial losses incurred while using or attempting to use our software. you use this software entirely at your own risk.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">4. cessation of updates & key revocation</h4>
-            <p class="tos-text">we reserve the explicit right to halt updates, pause maintenance, or permanently discontinue any software at any time without prior notice. furthermore, we reserve the absolute right to revoke, deactivate, or terminate any license key or user access at any time for any reason without liability, refund, or compensation.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">5. software testing & availability</h4>
-            <p class="tos-text">software is provided as-is for private research and educational testing purposes. we do not warrant or guarantee indefinite undetected status as anti-cheats constantly update.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">6. license restrictions & security</h4>
-            <p class="tos-text">each license key is tied strictly to the purchaser. any sharing, reselling, reverse engineering, dumping, analyzing, or leaking of our loader, binaries, or keys will lead to immediate, irreversible key revocation and hardware blacklisting.</p>
-          </div>
-          <div class="tos-section">
-            <h4 class="tos-section-title">7. support & inquiries</h4>
-            <p class="tos-text">customer support is available exclusively through our official discord community at <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">discord</a>.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 404 view (invalid hash routes) -->
-    <section class="page-view" id="view-404">
-      <div class="error-404-wrap">
-        <div class="error-404-card">
-          <div class="hero-eyebrow">error // page not found</div>
-          <h1 class="error-code-title highlighted">404 :(</h1>
-          <p class="error-404-msg">yeah this is a invaild page press the buttons we give dont make your own</p>
-          <div class="error-404-actions">
-            <button class="btn-primary" data-tab="home">go home</button>
-            <button class="btn-secondary" data-tab="shop">browse shop</button>
-            <button class="btn-secondary" data-tab="status">status</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- account modal -->
-  <div class="modal-backdrop" id="account-modal">
-    <div class="account-modal-card">
-      <div class="modal-header">
-        <h3 class="modal-title" id="account-modal-title">account</h3>
-        <button class="modal-close-btn" id="close-account-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
-
-      <!-- logged out: auth view -->
-      <div id="auth-forms-container" class="auth-forms-container">
-        <div class="auth-tabs">
-          <button class="auth-tab-btn active" id="tab-btn-login">log in</button>
-          <button class="auth-tab-btn" id="tab-btn-register">create account</button>
-        </div>
-
-        <div id="auth-feedback" class="auth-feedback"></div>
-
-        <!-- login form -->
-        <form id="login-form" class="auth-form active">
-          <div class="form-group">
-            <label for="login-email">email address</label>
-            <input type="email" id="login-email" class="form-input" placeholder="you@domain.com" required autocomplete="email">
-          </div>
-          <div class="form-group">
-            <label for="login-password">password</label>
-            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
-          </div>
-          <div class="turnstile-slot" id="turnstile-login"></div>
-          <button type="submit" class="btn-primary form-submit-btn" id="login-submit-btn">log in</button>
-        </form>
-
-        <!-- register form -->
-        <form id="register-form" class="auth-form">
-          <div class="form-group">
-            <label for="register-email">email address <span class="required-star">*</span></label>
-            <input type="email" id="register-email" class="form-input" placeholder="you@domain.com" required autocomplete="email">
-          </div>
-          <div class="form-group">
-            <label for="register-password">password <span class="required-star">*</span> (min 6 chars)</label>
-            <input type="password" id="register-password" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
-          </div>
-          <div class="form-group">
-            <label for="register-confirm-password">confirm password <span class="required-star">*</span></label>
-            <input type="password" id="register-confirm-password" class="form-input" placeholder="••••••••" minlength="6" required autocomplete="new-password">
-          </div>
-          <div class="turnstile-slot" id="turnstile-register"></div>
-          <button type="submit" class="btn-primary form-submit-btn" id="register-submit-btn">create account</button>
-        </form>
-      </div>
-
-      <!-- logged in: profile view -->
-      <div id="auth-profile-container" class="auth-profile-container" style="display: none;">
-        <div class="profile-header-card">
-          <div class="profile-avatar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div class="profile-details">
-            <div class="profile-email" id="profile-email-display">user@domain.com</div>
-            <div class="profile-meta">member since <span id="profile-created-display"></span></div>
-          </div>
-        </div>
-
-        <div class="profile-keys-section">
-          <div class="section-title">your license keys</div>
-          <div class="profile-keys-list" id="profile-keys-list">
-            <div class="empty-keys-msg">no active license keys registered yet.</div>
-          </div>
-        </div>
-
-        <div class="profile-actions">
-          <button class="btn-secondary logout-btn" id="logout-btn">log out</button>
-        </div>
-      </div>
-
-    </div>
+<nav class="snav" aria-label="Sticky navigation">
+  <a class="logo" href="#"><span>chudcheats<span style="color:var(--accent)">.xyz</span></span></a>
+  <div class="snav-links"><a href="shop.html">shop</a><a href="#status">status</a><a href="guides.html">setup guides</a><a href="dashboard.html">my keys</a></div>
+  <a class="btn btn-acc" href="#shop">browse shop</a>
+</nav>
+
+<header class="hero r-center">
+  <div class="sky" aria-hidden="true"></div>
+  <nav class="nav">
+    <a class="logo" href="#"><span>chudcheats<b>.xyz</b></span></a>
+    <div class="nav-links case"><a href="shop.html">shop</a><a href="#status">status</a><a href="guides.html">setup guides</a><a href="https://discord.gg/Et76gjWDX2">support</a><a href="dashboard.html">my keys</a></div>
+    <div class="nav-right"><a class="btn btn-ghost guest-only" href="login.html">sign in</a><a class="user-chip" href="dashboard.html"><i data-user-init></i><span data-user-name></span></a><a class="cart" href="cart.html"><span>cart</span><b data-cart-count>0</b></a></div>
+  </nav>
+  <div class="hero-copy">
+    <span class="pill"><span class="dot"></span>#1 provider · orbit is undetected</span>
+    <h1>undetected rust cheats<br><span class="muted" style="color:#b9cde0">for a small userbase</span></h1>
+    <p class="sub">orbit puts esp, aim and misc in one external menu. a small userbase keeps detections rare, and support answers on discord around the clock.</p>
+    <div class="ctas"><a class="btn btn-acc" href="#shop">browse shop</a><a class="btn btn-ghost" href="shop.html">view orbit →</a></div>
+    <div class="tags"><span class="tagq dim">"created control."</span><span class="tagq">"if everyone is cheating nobody is."</span></div>
   </div>
 
-  <!-- cart modal / drawer -->
-  <div class="modal-backdrop" id="cart-modal">
-    <div class="cart-modal-card">
-      <div class="modal-header">
-        <h3 class="modal-title">cart</h3>
-        <button class="modal-close-btn" id="close-cart-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
+  <div class="app" aria-hidden="true">
+    <div class="app-top">
+      <span class="mk" style="background:var(--accent)"><svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12" stroke="#03121d" stroke-width="3" stroke-linecap="round"/></svg></span>
+      <span class="crumb">loader / <b>orbit</b></span>
+      <span class="live" id="live">undetected</span>
+      <span class="sp"></span>
+      <span class="mono" style="color:var(--ui-ink-3)">build 2611.28</span>
+      <span class="b l">my keys</span><span class="b d" style="background:var(--accent);color:var(--on-accent)">support</span>
+    </div>
+    <div class="side">
+      <a class="on"><svg viewBox="0 0 16 16"><path d="M2.5 7L8 2.5 13.5 7v6.5h-11z"/></svg>loader</a>
+      <a><svg viewBox="0 0 16 16"><circle cx="5.5" cy="10.5" r="3"/><path d="M7.7 8.3L13 3M11 5l2 2"/></svg>my keys<em>1</em></a>
+      <a><svg viewBox="0 0 16 16"><path d="M4 2.5h6l2.5 2.5v8.5H4z"/></svg>setup guides</a>
+      <a><svg viewBox="0 0 16 16"><path d="M2 8h3l2-4 2 8 2-4h3"/></svg>status</a>
+      <a><svg viewBox="0 0 16 16"><path d="M3 3h10v7H7l-3 3v-3H3z"/></svg>support</a>
+      <div class="h">config</div>
+      <a><span class="dot" style="background:var(--accent)"></span>legit</a>
+      <a><span class="dot" style="background:#7c8ba0"></span>rage</a>
+      <a><span class="dot" style="background:#5b6a7d"></span>streamer</a>
+      <div class="me"><span style="width:24px;height:24px;border-radius:99px;background:#1b2a3c;display:grid;place-items:center;font:600 10px var(--sans);color:var(--accent)">c9</span><div>chad_92<small>key active</small></div></div>
+    </div>
+    <div class="canvas">
+      <div class="lc">
+        <div class="k">license<span>orbit · 7 days</span></div>
+        <div class="key">ORBIT-••••-K3X9</div>
+        <div class="exp"><span>expires in</span><b id="exp">6d 14:02:31</b></div>
       </div>
-      <div class="cart-items-container" id="cart-items">
-        <div class="empty-cart-msg">your cart is empty</div>
+      <div class="lc">
+        <div class="k">hwid<span class="ok">locked</span></div>
+        <div class="key" style="font-size:13px">a7f3••••9c21</div>
+        <div class="exp"><span>resets left</span><b>2 / 2</b></div>
       </div>
-      <div class="cart-footer">
-        <div class="cart-total-row">
-          <span>total (usd)</span>
-          <span id="cart-total-price">$0.00 usd</span>
+      <div class="lc launch">
+        <span class="go" id="go">launch orbit</span>
+        <span class="lmsg" id="msg">ready · rust not running</span>
+      </div>
+      <div class="lc">
+        <div class="k">visuals<span>esp</span></div>
+        <div class="tg"><span><b>players</b>name · distance · weapon</span><i class="sw on" id="t-p"></i></div>
+        <div class="tg"><span><b>sleepers</b>show sleeping bags</span><i class="sw" id="t-s"></i></div>
+        <div class="tg"><span><b>loot</b>crates · ore · hemp</span><i class="sw on" id="t-l"></i></div>
+      </div>
+      <div class="lc">
+        <div class="k">aim<span>legit</span></div>
+        <div class="sld"><div class="row"><span>fov</span><b id="v-fov">6.0°</b></div><div class="track"><i id="s-fov" style="--v:30%"></i></div></div>
+        <div class="sld" style="margin-top:14px"><div class="row"><span>smoothing</span><b id="v-sm">0.42</b></div><div class="track"><i id="s-sm" style="--v:42%"></i></div></div>
+        <div class="sld" style="margin-top:14px"><div class="row"><span>recoil control</span><b id="v-rc">80%</b></div><div class="track"><i id="s-rc" style="--v:80%"></i></div></div>
+      </div>
+    </div>
+    <div class="insp sess">
+      <h4><i><svg viewBox="0 0 12 12"><path d="M1.5 6h2l1.5-3 2 6 1.5-3h2"/></svg></i>session</h4>
+      <div class="rows">
+        <div><span>server</span><span class="v" id="srv">—</span></div>
+        <div><span>game build</span><span class="v">2611.28</span></div>
+        <div><span>overlay</span><span class="v" id="ov">off</span></div>
+        <div><span>uptime</span><span class="v" id="up">00:00:00</span></div>
+        <div><span>status</span><span class="v ok">undetected</span></div>
+      </div>
+      <div class="graph"><span>frame time · ms</span><svg viewBox="0 0 240 62" preserveAspectRatio="none" fill="none"><path id="ft" d="M0 40 L240 40" stroke="#8fd3ff" stroke-width="1.5"/></svg></div>
+      <div class="tog">stream-proof overlay<i></i></div>
+    </div>
+  </div>
+  <div class="hill" aria-hidden="true"></div>
+  <div class="hero-logos" style="justify-content:center;gap:64px">
+    <span class="lg mono" style="font-size:13px">99% uptime</span><span class="lg mono" style="font-size:13px">24/7 support</span><span class="lg mono" style="font-size:13px">trusted seller</span><span class="lg mono" style="font-size:13px">instant key delivery</span>
+  </div>
+</header>
+
+<main>
+<!-- FEATURES: the menu drawn over the world -->
+<section class="wrap" id="features">
+  <div class="feat">
+    <div>
+      <div class="seg" role="tablist">
+        <button class="on" data-h="see every player<br><span class='muted'>before they see you</span>" data-p="player esp with name, distance, held weapon and health, plus sleepers, loot crates, ore and hemp. every layer has its own colour and range.">visuals</button>
+        <button data-h="aim that looks<br><span class='muted'>like your own</span>" data-p="a small fov, smoothing and recoil control you tune yourself. the legit config is the default, and it stays that way until you change it.">aim</button>
+        <button data-h="a radar for<br><span class='muted'>the whole grid</span>" data-p="a 2d radar with players, sleepers and loot around you, plus a clean crosshair and a stream-proof overlay for when you're live.">misc</button>
+      </div>
+      <h2 class="h2">see every player<br><span class="muted">before they see you</span></h2>
+      <p class="lead">player esp with name, distance, held weapon and health, plus sleepers, loot crates, ore and hemp. every layer has its own colour and range.</p>
+      <div class="ilist">
+        <div><svg viewBox="0 0 16 16"><rect x="3" y="2.5" width="10" height="11" rx="1"/></svg><b>external</b><span>runs outside the game</span></div>
+        <div><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg><b>patch-day updates</b><span>back online after rust updates</span></div>
+        <div><svg viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3-2.2 5.2-5 6.4-2.8-1.2-5-3.4-5-6.4v-4z"/></svg><b>hwid-locked keys</b><span>your key, your pc</span></div>
+        <div><svg viewBox="0 0 16 16"><path d="M3 3h10v7H7l-3 3v-3H3z"/></svg><b>24/7 support</b><span>real people on discord</span></div>
+      </div>
+    </div>
+    <div class="featimg" id="fimg">
+      <div class="panel">
+        <div class="ovl">
+          <div class="box" id="b1" style="left:56.5%;top:45%;width:8%;height:25%"><span class="lb">rustyboi · ak-47</span><span class="hp"><i style="--h:82%"></i></span><span class="dist">48m</span></div>
+          <div class="box low" id="b2" style="left:66%;top:45%;width:8.4%;height:25%"><span class="lb">no_sleep · bolt</span><span class="hp"><i style="--h:46%"></i></span><span class="dist">71m</span></div>
         </div>
-        <button class="btn-checkout" id="checkout-btn">proceed to checkout</button>
+        <span class="tagq tag-chip">visuals · players + loot</span>
+      </div>
+      <div class="panel">
+        <div class="ovl">
+          <div class="fovc" id="fov" style="left:58%;top:52%;width:170px;height:170px"></div>
+          <div class="box" style="left:56.5%;top:45%;width:8%;height:25%"><span class="lb">rustyboi · ak-47</span><span class="hp"><i style="--h:82%"></i></span><span class="dist">48m</span></div>
+        </div>
+        <div class="card-in menu-card"><div class="hd"><small>aim · legit</small><b>fov 6.0° · smooth 0.42</b></div>
+          <div class="kv"><div><span>target</span><b>closest to crosshair</b></div><div><span>bone</span><b>head → chest</b></div><div><span>recoil</span><b>80%</b><i class="meter" style="--w:80%"></i></div></div></div>
+      </div>
+      <div class="panel">
+        <div class="radar" id="radar"><i class="me"></i><i class="p" style="left:30%;top:34%"></i><i class="p" style="left:68%;top:28%"></i><i class="l" style="left:60%;top:70%"></i><i class="l" style="left:22%;top:66%"></i></div>
+        <span class="tagq tag-chip">misc · radar + stream-proof</span>
       </div>
     </div>
   </div>
+  <div class="facts">
+    <div data-reveal><i><svg viewBox="0 0 16 16"><path d="M2 8h3l2-4 2 8 2-4h3"/></svg></i><div><b>99% uptime</b><small>across rust patches</small></div></div>
+    <div data-reveal><i><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg></i><div><b>24/7 support</b><small>on discord, by people</small></div></div>
+    <div data-reveal><i><svg viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3-2.2 5.2-5 6.4-2.8-1.2-5-3.4-5-6.4v-4z"/></svg></i><div><b>trusted seller</b><small>small, private userbase</small></div></div>
+    <div data-reveal><i><svg viewBox="0 0 16 16"><circle cx="5.5" cy="10.5" r="3"/><path d="M7.7 8.3L13 3M11 5l2 2"/></svg></i><div><b>instant keys</b><small>delivered to my keys</small></div></div>
+  </div>
+</section>
 
-  <!-- square checkout modal -->
-  <div class="modal-backdrop" id="checkout-modal">
-    <div class="checkout-modal-card">
-      <div class="modal-header">
-        <div class="checkout-header-titles">
-          <h3 class="modal-title">checkout</h3>
-          <span class="square-badge" id="square-mode-badge">powered by square</span>
-        </div>
-        <button class="modal-close-btn" id="close-checkout-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      </div>
+<!-- STATUS: live board -->
+<section class="wrap" id="status">
+  <div class="split">
+    <div><span class="badge"><i><svg viewBox="0 0 12 12"><path d="M1.5 6h2l1.5-3 2 6 1.5-3h2"/></svg></i>status</span><h2>check before<br><span class="muted">you load in</span></h2></div>
+    <p>the status board updates every minute. if a rust patch lands, orbit shows "updating" until it's safe again.</p>
+  </div>
+  <div class="stat" data-reveal>
+    <div class="stat-top"><span class="live">all systems operational</span><span class="sp"></span><small id="chk">last checked 4s ago</small></div>
+    <div class="srow"><div><b>orbit</b><small>external · build 2611.28</small></div><div class="bars" id="bars0"></div><span class="st g">undetected</span></div>
+    <div class="srow"><div><b>loader</b><small>windows 10 / 11</small></div><div class="bars" id="bars1"></div><span class="st g">operational</span></div>
+    <div class="srow"><div><b>key delivery</b><small>checkout → my keys</small></div><div class="bars" id="bars2"></div><span class="st g">operational</span></div>
+    <div class="srow"><div><b>support</b><small>discord tickets</small></div><div class="bars" id="bars3"></div><span class="st g">online</span></div>
+  </div>
+</section>
 
-      <div class="checkout-body">
-        <div class="order-summary-box">
-          <div class="summary-heading">order summary (usd)</div>
-          <div id="checkout-items-list" class="checkout-items-list">
-            <!-- populated from cart -->
-          </div>
-          <div class="checkout-total-row">
-            <span>store total (usd)</span>
-            <span id="checkout-total-price" class="total-amount">$0.00 usd</span>
-          </div>
-        </div>
-
-        <div class="checkout-promo-box">
-          <label for="checkout-promo-input" class="checkout-label">promo code</label>
-          <div class="promo-input-row">
-            <input type="text" id="checkout-promo-input" class="form-input promo-input" placeholder="enter promo code..." autocomplete="off">
-            <button type="button" class="btn-secondary btn-promo-apply" id="apply-promo-btn">apply</button>
-          </div>
-          <div id="checkout-promo-feedback" class="promo-feedback"></div>
-        </div>
-
-        <div class="fx-notice-box" id="checkout-fx-box">
-          <div class="fx-notice-header">
-            <svg class="fx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span class="fx-direction-tag">usd &gt; aud</span>
-          </div>
-          <p class="fx-notice-text">our payment processer can only process aud, but our pricing is in usd. the checkout is going to display aud pricing heres the real conversion.</p>
-          <div class="fx-conversion-row">
-            <span class="fx-pair" id="checkout-fx-pair">$0.00 usd &gt; $0.00 aud</span>
-            <span class="fx-rate-pill" id="checkout-fx-rate">1 usd = ... aud</span>
-          </div>
-        </div>
-
-        <div class="checkout-account-box">
-          <label for="checkout-email" class="checkout-label">delivery email <span class="required-star">*</span></label>
-          <p class="checkout-hint">keys will be saved directly in your account database under this email.</p>
-          <input type="email" id="checkout-email" class="form-input" placeholder="you@domain.com" required>
-        </div>
-
-        <div class="checkout-tos-box">
-          <label class="checkout-tos-check" for="checkout-tos-checkbox">
-            <input type="checkbox" id="checkout-tos-checkbox" required>
-            <span>i agree to the <button type="button" class="tos-inline-link" id="toggle-checkout-tos-btn">terms of service</button> <span class="required-star">*</span></span>
-          </label>
-          <div class="checkout-tos-preview" id="checkout-tos-preview" style="display: none;">
-            <p>1. all digital license key sales are final (no refunds or chargebacks).</p>
-            <p>2. software is used at your own risk; we hold no liability for bans or sanctions.</p>
-            <p>3. sharing, reselling, or reverse engineering revokes key access permanently.</p>
-            <button type="button" class="tos-full-link" id="open-full-tos-btn">read full terms of service &rarr;</button>
-          </div>
-        </div>
-
-        <div class="turnstile-slot" id="turnstile-checkout"></div>
-
-        <div id="checkout-feedback" class="auth-feedback"></div>
-
-        <div class="checkout-payment-box">
-          <button class="btn-primary pay-square-btn" id="pay-square-btn">
-            <svg class="square-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><rect width="8" height="8" x="8" y="8" rx="1"/></svg>
-            <span id="pay-square-btn-text">pay with square (aud)</span>
-          </button>
-          <p class="secure-notice">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            encrypted secure square payment processing. keys stored in your account upon completion.
-          </p>
-        </div>
-      </div>
+<!-- THREE WORLD PLATES -->
+<section class="wrap">
+  <div class="split">
+    <div><span class="badge"><i><svg viewBox="0 0 12 12"><path d="M6 1.5l4 2.5v4L6 10.5 2 8V4z"/></svg></i>why chud</span><h2>built for players<br><span class="muted">who stay quiet</span></h2></div>
+    <p>no reseller army, no thousand-seat lobbies. a small userbase is the whole point.</p>
+  </div>
+  <div class="wplates">
+    <div class="wp" style="background-image:url(img/tower.jpg)" data-reveal>
+      <div class="card-in" style="left:18px;top:18px"><div class="hd"><small>patch day · rust 2611.28</small><b id="pd-b">orbit updated</b></div>
+        <div class="prog"><i id="pd-p" style="--w:100%"></i></div><div class="ft"><span>status</span><span class="st g" id="pd-s">undetected</span></div></div>
+      <div class="cap"><h3>back after every patch</h3><p>when rust updates, orbit goes to "updating" and comes back on the status board once it's safe.</p></div>
+    </div>
+    <div class="wp" style="background-image:url(img/shack.jpg)" data-reveal>
+      <div class="mini" style="left:18px;top:18px;width:200px"><div class="k">checkout<span>now</span></div><b id="kd-b">key delivered</b><small>ORBIT-••••-K3X9 → my keys</small></div>
+      <div class="cap"><h3>keys in seconds</h3><p>pay, and the key lands in my keys with the loader download beside it.</p></div>
+    </div>
+    <div class="wp" style="background-image:url(img/beach.jpg)" data-reveal>
+      <div class="mini" style="right:18px;top:18px;width:210px"><div class="k">#support<span>24/7</span></div><b>ticket answered</b><small>by a person, not a bot</small></div>
+      <div class="cap"><h3>help at 3am</h3><p>support runs on discord all day and night, by the people who run the cheat.</p></div>
     </div>
   </div>
+</section>
 
-  <!-- toast notifications -->
-  <div class="toast-container" id="toast-container"></div>
+<!-- SETUP: three steps -->
+<section class="wrap" id="setup">
+  <div class="how">
+    <div class="split"><div><span class="badge"><i><svg viewBox="0 0 12 12"><path d="M2 6h8M7 3l3 3-3 3"/></svg></i>setup guides</span><h2>from checkout<br>to your first raid</h2></div><p>three steps, about five minutes. the full guides live in setup guides and on discord.</p></div>
+    <div class="steps">
+      <div><div class="ic"><svg viewBox="0 0 16 16"><circle cx="5.5" cy="10.5" r="3"/><path d="M7.7 8.3L13 3M11 5l2 2"/></svg></div><span class="num">01</span><h3>buy a key</h3><p>pick a day, a week or a month. the key shows up in my keys right away.</p></div>
+      <div><div class="ic"><svg viewBox="0 0 16 16"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M3 13h10"/></svg></div><span class="num">02</span><h3>download the loader</h3><p>sign in, grab the loader from my keys and paste your key. it locks to your pc.</p></div>
+      <div><div class="ic"><svg viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z"/></svg></div><span class="num">03</span><h3>launch rust</h3><p>start rust, press launch in the loader and open the menu with insert.</p></div>
+    </div>
+  </div>
+</section>
 
-  <!-- footer -->
-  <footer class="site-footer">
-    <div class="footer-grid">
-      <div class="footer-brand-col">
-        <span class="footer-brand">chudcheats.xyz</span>
-        <div class="footer-slogans-row">
-          <span class="footer-slogan">"created control."</span>
-          <span class="footer-seller-slogan">"if everyone is cheating nobody is."</span>
-        </div>
-        <p class="footer-disclaimer">digital license keys are final sale. third-party software use is at your own risk.</p>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-col-title">navigation</h4>
-        <button class="footer-link nav-link-btn" data-tab="home">home</button>
-        <button class="footer-link nav-link-btn" data-tab="shop">shop</button>
-        <button class="footer-link nav-link-btn" data-tab="status">status</button>
-        <button class="footer-link nav-link-btn" data-tab="setup-guides">setup guides</button>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-col-title">our products</h4>
-        <button class="footer-link nav-link-btn" data-tab="product">rust orbit</button>
-        <button class="footer-link nav-link-btn" data-tab="my-keys">my keys</button>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-col-title">links</h4>
-        <button class="footer-link nav-link-btn" data-tab="tos">terms of service</button>
-        <a href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener noreferrer" class="footer-link">support discord</a>
+<!-- SHOP: key tiers -->
+<section class="wrap center" id="shop">
+  <span class="badge"><i><svg viewBox="0 0 12 12"><path d="M2 3h8l-1 5H3z"/></svg></i>shop</span>
+  <h2 class="h2">orbit keys<br><span class="muted">starts at $7.99</span></h2>
+  <div class="plans">
+    <div class="plan"><h3>1 day</h3><p class="d">try it on a wipe day.</p><div class="pr">$7.99<small>/ key</small></div><a class="btn btn-line" href="cart.html" data-add="1d">add to cart</a>
+      <ul><li>every feature</li><li>instant delivery</li><li>24/7 support</li></ul></div>
+    <div class="plan hl"><div class="tab">most picked</div><h3>7 days</h3><p class="d">a full wipe week.</p><div class="pr">$19.99<small>/ key</small></div><a class="btn btn-acc" href="cart.html" data-add="7d">add to cart</a>
+      <ul><li>every feature</li><li>instant delivery</li><li>24/7 support</li><li>1 hwid reset</li></ul></div>
+    <div class="plan"><h3>30 days</h3><p class="d">for the long monthly wipes.</p><div class="pr">$39.99<small>/ key</small></div><a class="btn btn-line" href="cart.html" data-add="30d">add to cart</a>
+      <ul><li>every feature</li><li>instant delivery</li><li>24/7 support</li><li>2 hwid resets</li></ul></div>
+  </div>
+</section>
+
+<!-- ANNOUNCEMENTS -->
+<section class="wrap">
+  <div class="feedwrap">
+    <div data-reveal><span class="badge"><i><svg viewBox="0 0 12 12"><path d="M2 3h8v5H5l-3 2z"/></svg></i>discord</span>
+      <h2 class="h2">the discord is<br><span class="muted">where it all happens</span></h2>
+      <p class="l">updates, status, setup help and support tickets all live on discord. join before you buy and ask anything.</p>
+      <a class="btn btn-acc" style="margin-top:28px" href="https://discord.gg/Et76gjWDX2">join the discord</a></div>
+    <div class="dc" data-reveal>
+      <div class="dc-top"># <b>announcements</b><span class="sp"></span><span class="mono" id="online">● 0 online</span></div>
+      <div class="dc-body" id="feed"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="wrap faq2" id="faq">
+  <div class="f2-l" data-reveal><span class="badge"><i><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5"/></svg></i>faq</span>
+    <h2 class="h2">questions,<br><span class="muted">answered</span></h2>
+    <p>anything else? <a href="https://discord.gg/Et76gjWDX2">open a ticket on discord</a> and a person will answer.</p></div>
+  <div class="faq">
+    <details open><summary>what is orbit?<i>+</i></summary><p>an external cheat for rust with player and loot esp, legit aim, recoil control, a radar and a stream-proof overlay, all in one menu.</p></details>
+    <details><summary>how do i get my key?<i>+</i></summary><p>right after checkout it appears in my keys, with the loader download next to it.</p></details>
+    <details><summary>what happens when rust updates?<i>+</i></summary><p>orbit switches to "updating" on the status board and comes back once it's safe to use. check status before you load in.</p></details>
+    <details><summary>can i move my key to a new pc?<i>+</i></summary><p>keys lock to one pc. 7-day and 30-day keys include hwid resets, and support can help with anything else.</p></details>
+    <details><summary>is it safe?<i>+</i></summary><p>no cheat is risk-free. a small userbase keeps detections rare, and the status board tells you before you play.</p></details>
+  </div>
+</section>
+
+<section class="cta"><div class="bg" aria-hidden="true"></div><div class="cta-in">
+  <div class="tags"><span class="tagq dim">"created control."</span></div>
+  <h2>if everyone is cheating,<br>nobody is.</h2><p>orbit keys from $7.99, delivered instantly.</p><a class="btn btn-acc" href="#shop">browse shop</a>
+</div></section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ftop">
+      <div class="about"><a class="logo" href="#"><span>chudcheats<span style="color:var(--accent)">.xyz</span></span></a><p>undetected rust cheats for a small userbase. support on discord, around the clock.</p>
+        <div class="news"><b>patch alerts</b><small>an email when orbit is updated after a rust patch.</small><form id="news-f"><input type="email" placeholder="you@email.com" aria-label="email"><button aria-label="subscribe">→</button></form></div></div>
+      <div class="cols">
+        <div><h5>shop</h5><a href="shop.html">orbit</a><a href="#shop">key prices</a><a href="dashboard.html">my keys</a></div>
+        <div><h5>help</h5><a href="guides.html">setup guides</a><a href="#status">status</a><a href="#faq">faq</a></div>
+        <div><h5>support</h5><a href="https://discord.gg/Et76gjWDX2">discord</a><a href="https://discord.gg/Et76gjWDX2">open a ticket</a></div>
+        <div><h5>legal</h5><a href="terms.html">tos</a><a href="terms.html#refunds">refunds</a></div>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>2026 &copy; chudcheats.xyz</span>
-    </div>
-  </footer>
+    <div class="fbottom"><span>chudcheats.xyz · <span class="mono">"created control."</span></span><span class="mono">"if everyone is cheating nobody is."</span></div>
+  </div>
+  <div class="giant plain"><span>chudcheats</span></div>
+</footer>
 
-  <script src="smooth-scroll.js"></script>
-  <script src="script.js"></script>
+<script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="kit.js"></script>
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, $$, loop, sleep, tween, roll, EASE, RM } = Kit;
+const pad = n => String(n).padStart(2, '0');
+if ($('#news-f')) $('#news-f').onsubmit = e => { e.preventDefault(); CC.toast('patch alerts post first in #announcements on discord'); };
+
+/* ---------- hero loader: launch → attach → live session ---------- */
+let left = ((6 * 24 + 14) * 60 + 2) * 60 + 31;
+setInterval(() => { left--; const d = Math.floor(left / 86400), h = Math.floor(left % 86400 / 3600), m = Math.floor(left % 3600 / 60), s = left % 60; $('#exp').textContent = `${d}d ${pad(h)}:${pad(m)}:${pad(s)}`; }, 1000);
+const go = $('#go'), msg = $('#msg');
+const SERVERS = ['rusticated · us main', 'rustoria · eu main', 'moose · us 2x', 'stevious · eu 3x'];
+let si = 0, upT = 0, upTimer;
+const ft = $('#ft');
+const drawFt = () => { let d = 'M0 ' + (34 + Math.random() * 8).toFixed(1); for (let x = 12; x <= 240; x += 12) d += ` L${x} ${(30 + Math.random() * 14).toFixed(1)}`; ft.setAttribute('d', d); };
+const setSl = (id, v, txt) => { $('#s-' + id).style.setProperty('--v', v + '%'); roll($('#v-' + id), txt); };
+loop($('.app'), async () => {
+  go.className = 'go'; go.textContent = 'launch orbit'; msg.textContent = 'ready · rust not running';
+  $('#srv').textContent = '—'; $('#ov').textContent = 'off'; $('#up').textContent = '00:00:00'; clearInterval(upTimer);
+  await sleep(1600);
+  go.className = 'go wait'; go.textContent = 'waiting…'; msg.textContent = 'waiting for rustclient.exe';
+  await sleep(1400);
+  msg.textContent = 'rust found · loading config "legit"'; await sleep(900);
+  go.className = 'go on'; go.textContent = '● running'; msg.textContent = 'running · press insert for the menu';
+  roll($('#srv'), SERVERS[si++ % SERVERS.length]); roll($('#ov'), 'on');
+  upT = 0; upTimer = setInterval(() => { upT++; $('#up').textContent = `00:${pad(Math.floor(upT / 60))}:${pad(upT % 60)}`; drawFt(); }, 1000);
+  await sleep(1200); $('#t-s').classList.add('on');
+  await sleep(900); setSl('fov', 38, '7.5°');
+  await sleep(1100); setSl('sm', 55, '0.55');
+  await sleep(2600); $('#t-s').classList.remove('on'); setSl('fov', 30, '6.0°'); setSl('sm', 42, '0.42');
+  await sleep(1800);
+});
+
+/* ---------- features: esp boxes track the two players ---------- */
+const P1 = [[56.5, 45, 8, 25], [57.2, 44.6, 8.1, 25.3], [57.8, 45.2, 8, 24.8], [57, 45.4, 7.9, 24.6]];
+const P2 = [[66, 45, 8.4, 25], [66.6, 44.8, 8.4, 25.2], [67.3, 45.3, 8.3, 24.9], [66.8, 45.1, 8.4, 25]];
+let pi = 0;
+const place = (el, [l, t, w, h]) => Object.assign(el.style, { left: l + '%', top: t + '%', width: w + '%', height: h + '%' });
+loop($('#fimg'), async () => {
+  await sleep(1400); pi = (pi + 1) % P1.length;
+  place($('#b1'), P1[pi]); place($('#b2'), P2[pi]);
+  $('#b1 .dist').textContent = (48 - pi * 2) + 'm'; $('#b2 .dist').textContent = (71 - pi) + 'm';
+  const rd = $$('#radar .p'); rd[0].style.left = (30 + pi * 3) + '%'; rd[1].style.top = (28 + pi * 4) + '%';
+});
+
+/* ---------- status board: 90 days of bars, ticking check ---------- */
+['#bars0', '#bars1', '#bars2', '#bars3'].forEach((id, k) => {
+  const el = $(id); let h = '';
+  for (let i = 0; i < 90; i++) h += `<i class="${(k === 0 && (i === 61 || i === 62)) || (k === 1 && i === 27) ? 'y' : ''}" title="day ${i + 1}"></i>`;
+  el.innerHTML = h;
+});
+let chk = 4;
+setInterval(() => { chk = chk >= 59 ? 1 : chk + 1; $('#chk').textContent = `last checked ${chk}s ago`; }, 1000);
+
+/* ---------- plates: patch day cycle, key delivery ---------- */
+loop($('#pd-b'), async () => {
+  $('#pd-b').textContent = 'rust patch detected'; $('#pd-s').className = 'st y'; $('#pd-s').textContent = 'updating'; $('#pd-p').style.setProperty('--w', '8%');
+  await sleep(900); $('#pd-p').style.setProperty('--w', '64%'); await sleep(1300); $('#pd-p').style.setProperty('--w', '100%');
+  await sleep(900); roll($('#pd-b'), 'orbit updated'); $('#pd-s').className = 'st g'; $('#pd-s').textContent = 'undetected';
+  await sleep(4200);
+});
+loop($('#kd-b'), async () => { await sleep(3200); roll($('#kd-b'), 'payment received'); await sleep(1100); roll($('#kd-b'), 'key delivered'); });
+
+/* ---------- discord announcements stream in ---------- */
+const FEED = [
+  ['chudcheats', 'staff', 'orbit is <code>undetected</code> on build 2611.28. load in.'],
+  ['chudcheats', 'staff', 'rust patch is live. orbit set to <code>updating</code>, check status before you play.'],
+  ['chudcheats', 'staff', 'back up. orbit updated for today\'s patch, same keys, same config.'],
+  ['chudcheats', 'staff', 'new: loot esp filters for crates, ore and hemp. turn them on under visuals.'],
+  ['chudcheats', 'staff', 'reminder: setup guides are in <code>#setup</code>. tickets in <code>#support</code>, 24/7.']];
+const feed = $('#feed'); let fi = 0, online = 214;
+const stamp = () => { const d = new Date(); return `today at ${d.getHours() % 12 || 12}:${pad(d.getMinutes())} ${d.getHours() < 12 ? 'am' : 'pm'}`; };
+const add = (animate) => {
+  const [n, tag, t] = FEED[fi++ % FEED.length], m = document.createElement('div');
+  m.className = 'msg'; m.innerHTML = `<span class="av">c</span><div><div class="hd"><b>${n}</b><em>${tag}</em><small>${stamp()}</small></div><p>${t}</p></div>`;
+  feed.appendChild(m); while (feed.children.length > 4) feed.firstElementChild.remove();
+  if (animate && !RM) m.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 600, easing: EASE });
+};
+for (let i = 0; i < 3; i++) add(false);
+$('#online').textContent = `● ${online} online`;
+loop(feed, async () => { await sleep(3400); add(true); online += Math.round(Math.random() * 6 - 2); $('#online').textContent = `● ${online} online`; });
+})();
+</script>
 </body>
 </html>

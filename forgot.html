@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reset your password — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="auth">
+  <div class="auth-art" style="background-image:url(img/beach.jpg);background-position:center">
+    <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+    <div class="quote"><p>locked out? it happens.<br>we'll get you back in.</p></div>
+  </div>
+  <div class="auth-side">
+    <a class="back" href="login.html">← back to sign in</a>
+    <form class="auth-form" id="f" novalidate>
+      <h1>reset your password<br><span class="muted">recover your account</span></h1>
+      <p>enter the email on your account to request recovery or open a ticket on discord.</p>
+      <div class="field" id="f-email"><label for="email">email</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5"/></svg><input id="email" type="email" autocomplete="email" placeholder="you@email.com"></div>
+        <span class="err">enter a valid email</span></div>
+      <div class="turnstile-slot" id="turnstile-forgot"></div>
+      <div class="flash bad" id="flash"></div>
+      <button class="btn btn-acc btn-block" id="go">request reset</button>
+      <p class="note">need help now? <a href="https://discord.gg/Et76gjWDX2">open a ticket on discord</a></p>
+    </form>
+  </div>
+</div>
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, api, turnstile } = CC;
+turnstile.mount('forgot', 'turnstile-forgot');
+
+const showErr = msg => {
+  const fl = $('#flash');
+  fl.className = 'flash show bad';
+  fl.textContent = String(msg || 'request failed.').toLowerCase();
+};
+
+$('#f').onsubmit = async e => {
+  e.preventDefault();
+  $('#flash').className = 'flash bad';
+  const email = $('#email').value.trim().toLowerCase(), bad = !/^\S+@\S+\.\S+$/.test(email);
+  $('#f-email').classList.toggle('bad', bad);
+  if (bad) return;
+
+  const cfToken = turnstile.token('forgot');
+  if (turnstile.isActive() && !cfToken) {
+    showErr('please complete cloudflare verification first.');
+    return;
+  }
+
+  $('#go').disabled = true;
+  $('#go').textContent = 'checking…';
+  const data = await api('api/auth.php?action=forgot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, cf_turnstile_response: cfToken })
+  });
+  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('forgot');
+  showErr(data.message || 'open a support ticket on discord to reset your password.');
+  $('#go').disabled = false;
+  $('#go').textContent = 'request reset';
+};
+})();
+</script>
+</body>
+</html>

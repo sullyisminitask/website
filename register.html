@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>create an account — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="auth">
+  <div class="auth-art" style="background-image:url(img/tower.jpg);background-position:center 35%">
+    <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+    <div class="card-in"><div class="hd"><small>after sign-up</small><b>what you get</b></div>
+      <div class="kv"><div><span>keys</span><b>delivered instantly</b></div><div><span>loader</span><b>in my keys</b></div><div><span>support</span><b class="ok">24/7 on discord</b></div></div></div>
+    <div class="quote"><p>created control.</p><div class="tags"><span class="tagq">"if everyone is cheating nobody is."</span></div></div>
+  </div>
+  <div class="auth-side">
+    <a class="back" href="index.html">← back to site</a>
+    <form class="auth-form" id="f" novalidate>
+      <h1>create an account<br><span class="muted">takes 30 seconds</span></h1>
+      <p>you need an account to buy keys and download the loader.</p>
+      <div class="field" id="f-name"><label for="name">username</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 14c.8-2.8 3-4.2 5.5-4.2s4.7 1.4 5.5 4.2"/></svg><input id="name" autocomplete="username" placeholder="chad_92" maxlength="16"></div>
+        <span class="err">3 to 16 letters, numbers or underscores</span></div>
+      <div class="field" id="f-email"><label for="email">email</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5"/></svg><input id="email" type="email" autocomplete="email" placeholder="you@email.com"></div>
+        <span class="err">enter a valid email</span></div>
+      <div class="field" id="f-pw"><label for="pw">password <span id="pw-l" class="mono" style="font-size:11px;color:var(--ink-3)"></span></label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg><input id="pw" type="password" autocomplete="new-password" placeholder="at least 8 characters"><button type="button" data-show="pw">show</button></div>
+        <div class="strength" id="str"><i></i><i></i><i></i><i></i></div>
+        <span class="err">use at least 8 characters</span></div>
+      <div class="field" id="f-pw2"><label for="pw2">confirm password</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg><input id="pw2" type="password" autocomplete="new-password" placeholder="same password again"></div>
+        <span class="err">passwords don't match</span></div>
+      <label class="check" id="f-tos"><input type="checkbox" id="tos"><span>i agree to the <a href="terms.html" target="_blank">terms of service</a> and the <a href="terms.html#refunds" target="_blank">refund policy</a></span></label>
+      <div class="turnstile-slot" id="turnstile-register"></div>
+      <div class="flash bad" id="flash"></div>
+      <button class="btn btn-acc btn-block" id="go">create account</button>
+      <p class="note">already have one? <a href="login.html" id="login-link">sign in</a></p>
+    </form>
+  </div>
+</div>
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, $$, api, ready, turnstile, paintUser } = CC;
+const rawNext = new URLSearchParams(location.search).get('next') || '';
+const safeNext = (rawNext && !/^[a-z]+:/i.test(rawNext) && !rawNext.startsWith('//')) ? rawNext : '';
+if (safeNext && $('#login-link')) $('#login-link').href = 'login.html?next=' + encodeURIComponent(safeNext);
+
+ready.then(u => { if (u) location.replace(safeNext || 'dashboard.html'); });
+turnstile.mount('register', 'turnstile-register');
+
+$$('[data-show]').forEach(b => b.onclick = () => {
+  const i = $('#' + b.dataset.show);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  b.textContent = i.type === 'password' ? 'show' : 'hide';
+});
+
+const score = p => (p.length >= 8) + (p.length >= 12) + (/[A-Z]/.test(p) && /[a-z]/.test(p)) + (/[\d\W]/.test(p));
+$('#pw').oninput = () => {
+  const s = $('#pw').value ? Math.max(1, score($('#pw').value)) : 0;
+  $('#str').className = 'strength' + (s ? ' s' + s : '');
+  $('#pw-l').textContent = ['', 'weak', 'okay', 'good', 'strong'][s];
+};
+
+const showErr = msg => {
+  const f = $('#flash');
+  f.className = 'flash show bad';
+  f.textContent = String(msg || 'registration failed.').toLowerCase();
+};
+
+$('#f').onsubmit = async e => {
+  e.preventDefault();
+  $('#flash').className = 'flash bad';
+  const name = $('#name').value.trim(), email = $('#email').value.trim().toLowerCase(), pw = $('#pw').value, pw2 = $('#pw2').value;
+  const bad = {
+    'f-name': !/^[a-zA-Z0-9_]{3,16}$/.test(name),
+    'f-email': !/^\S+@\S+\.\S+$/.test(email),
+    'f-pw': pw.length < 8,
+    'f-pw2': !pw2 || pw !== pw2,
+    'f-tos': !$('#tos').checked
+  };
+  Object.entries(bad).forEach(([id, b]) => $('#' + id).classList.toggle('bad', b));
+  if (Object.values(bad).some(Boolean)) return;
+
+  const cfToken = turnstile.token('register');
+  if (turnstile.isActive() && !cfToken) {
+    showErr('please complete cloudflare verification before registering.');
+    return;
+  }
+
+  $('#go').disabled = true;
+  $('#go').textContent = 'creating account…';
+
+  const data = await api('api/auth.php?action=register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: name,
+      email,
+      password: pw,
+      confirm_password: pw2,
+      cf_turnstile_response: cfToken
+    })
+  });
+
+  if (data.success && data.user) {
+    paintUser(data.user);
+    turnstile.reset('register');
+    location.href = safeNext || 'dashboard.html?welcome=1';
+    return;
+  }
+
+  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('register');
+  showErr(data.message || 'registration failed.');
+  $('#go').disabled = false;
+  $('#go').textContent = 'create account';
+};
+})();
+</script>
+</body>
+</html>

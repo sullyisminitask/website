@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cart — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+  <nav class="links"><a href="shop.html">shop</a><a href="index.html#status">status</a><a href="guides.html">setup guides</a><a href="https://discord.gg/Et76gjWDX2">support</a><a href="dashboard.html">my keys</a></nav>
+  <div class="right"><a class="btn btn-ghost guest-only" href="login.html">sign in</a><a class="user-chip" href="dashboard.html"><i data-user-init></i><span data-user-name></span></a><a class="cart" href="cart.html"><span>cart</span><b data-cart-count>0</b></a></div>
+</header>
+
+<main class="page">
+  <div id="wrap">
+    <div class="page-head"><div><div class="crumbs"><a href="index.html">home</a> / cart</div><h1>your cart</h1><p>keys are delivered to my keys the moment payment clears.</p></div></div>
+    <div class="cart-grid">
+      <div>
+        <div class="box-c" id="items"></div>
+        <div class="box-c after" id="after">
+          <div><span class="n">01</span><b>pay in aud via square</b><p>pricing is in usd and checkout converts to aud at the live rate.</p></div>
+          <div><span class="n">02</span><b>key delivered</b><p>it appears in my keys straight away.</p></div>
+          <div><span class="n">03</span><b>download and play</b><p>grab the loader and follow the <a href="guides.html" style="color:var(--accent)">setup guide</a>.</p></div>
+        </div>
+        <div class="trust" id="trust">
+          <span><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>secure square checkout</span>
+          <span><svg viewBox="0 0 16 16"><path d="M2 8h3l2-4 2 8 2-4h3"/></svg>orbit is undetected</span>
+          <span><svg viewBox="0 0 16 16"><path d="M3 3h10v7H7l-3 3v-3H3z"/></svg>24/7 support on discord</span>
+        </div>
+      </div>
+      <aside class="box-c sum" id="sum">
+        <div class="box-h"><b>summary</b><small id="n-items"></small></div>
+        <div class="box-b">
+          <div class="row"><span>subtotal (usd)</span><b id="sub">$0.00</b></div>
+          <div class="row" id="disc-row" style="display:none"><span>promo <span class="mono" id="disc-code"></span><button type="button" class="promo-rm" id="rm-promo">remove</button></span><b id="disc">−$0.00</b></div>
+          <form class="field" id="code-f" style="margin-top:10px"><div class="inp" style="height:40px"><input id="code" placeholder="promo code" autocomplete="off"><button type="submit" id="code-btn">apply</button></div><span class="err" id="code-err">that code isn't valid</span></form>
+          <div class="row tot"><span>total (usd)</span><b id="tot">$0.00</b></div>
+          <div class="fx-notice" id="fx-notice">
+            <span>our payment processer can only process aud, but our pricing is in usd. the checkout is going to display aud pricing heres the real conversion.</span>
+            <div class="fx-pair"><span>conversion</span><b id="fx-pair">$0.00 usd > $0.00 aud</b></div>
+            <small class="fx-rate" id="fx-rate">1 usd = 1.5100 aud</small>
+          </div>
+          <div class="field" style="margin-top:14px"><label>pay with</label>
+            <div class="pay" style="grid-template-columns:1fr"><label><input type="radio" name="pay" value="square" checked>square checkout<small id="pay-cur-tag">aud</small></label></div></div>
+          <label class="check" id="f-tos"><input type="checkbox" id="tos"><span>i agree to the <a href="terms.html" target="_blank">terms</a> and the <a href="terms.html#refunds" target="_blank">refund policy</a></span></label>
+          <div class="turnstile-slot" id="turnstile-checkout"></div>
+          <div class="flash bad" id="pay-err"></div>
+          <button class="btn btn-acc btn-block" id="pay">checkout</button>
+          <p class="note" style="margin-top:12px;font-size:12px" id="pay-note">payments process securely via square in aud. keys store directly in your account.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div class="box-c done" id="done">
+    <div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>order completed</h2>
+    <p>order <span class="mono" id="oid" style="color:var(--ink)"></span> is completed. your key is waiting in my keys.</p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px"><a class="btn btn-acc" href="dashboard.html">go to my keys</a><a class="btn btn-line" href="guides.html">setup guide</a></div>
+  </div>
+</main>
+
+<footer class="mini-foot"><span>chudcheats.xyz · <span class="mono" style="color:var(--accent)">"created control."</span></span><div><a href="terms.html">tos</a><a href="terms.html#refunds">refunds</a><a href="https://discord.gg/Et76gjWDX2">support discord</a></div></footer>
+
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, TIERS, money, toast, api, ready, getConfig, turnstile } = CC;
+
+let cfg = { currency: 'AUD', usd_to_aud: 1.51, rate_source: 'live', environment: 'sandbox', configured: false };
+let promo = null;
+try { promo = JSON.parse(sessionStorage.getItem('cc_applied_promo') || 'null'); } catch {}
+
+const showPayErr = msg => {
+  const el = $('#pay-err');
+  el.className = 'flash show bad';
+  el.textContent = String(msg || 'checkout failed.').toLowerCase();
+};
+
+const clearPayErr = () => {
+  $('#pay-err').className = 'flash bad';
+  $('#pay-err').textContent = '';
+};
+
+const render = () => {
+  const c = CC.cart(), n = c.reduce((a, i) => a + i.qty, 0);
+  if (!c.length) {
+    $('#items').innerHTML = `<div class="empty"><b>your cart is empty</b>pick a key length on the shop page.<br><a class="btn btn-acc" href="shop.html">browse shop</a></div>`;
+    $('#sum').style.display = 'none'; $('#after').style.display = 'none'; $('#trust').style.display = 'none';
+    return;
+  }
+  $('#sum').style.display = '';
+  $('#after').style.display = '';
+  $('#trust').style.display = '';
+  $('#items').innerHTML = c.map((i, k) => {
+    const t = TIERS[i.tier];
+    return `<div class="ci" data-k="${k}">
+      <img src="img/product.jpg" alt=""><div><b>${t.name}</b><small>${t.len} · instant delivery</small><button class="rm" data-rm>remove</button></div>
+      <div class="qty"><button type="button" data-d="-1" aria-label="less">−</button><span>${i.qty}</span><button type="button" data-d="1" aria-label="more">+</button></div>
+      <span class="p">${money(t.price * i.qty)}</span></div>`;
+  }).join('');
+
+  const pct = promo ? Math.max(0, Math.min(100, Number(promo.discount_percent || 0))) : 0;
+  const sub = c.reduce((a, i) => a + TIERS[i.tier].price * i.qty, 0);
+  let totalUsd = 0, totalAud = 0;
+  const rate = Number(cfg.usd_to_aud) || 1.51;
+  const isAud = String(cfg.currency || 'AUD').toUpperCase() === 'AUD';
+
+  c.forEach(i => {
+    const t = TIERS[i.tier];
+    const discUnitUsd = Math.round(t.price * ((100 - pct) / 100) * 100) / 100;
+    totalUsd += discUnitUsd * i.qty;
+    const unitAud = Math.round(discUnitUsd * rate * 100) / 100;
+    totalAud += unitAud * i.qty;
+  });
+
+  const off = Math.max(0, sub - totalUsd);
+  $('#n-items').textContent = n + (n === 1 ? ' key' : ' keys');
+  $('#sub').textContent = money(sub) + ' usd';
+  $('#disc-row').style.display = promo ? '' : 'none';
+  $('#disc').textContent = '−' + money(off);
+  $('#disc-code').textContent = promo ? `${promo.code} (${pct}%)` : '';
+  $('#tot').textContent = totalUsd <= 0 && promo
+    ? `$0.00 usd (free via ${promo.code})`
+    : `${money(totalUsd)} usd`;
+
+  const isFree = totalUsd <= 0;
+  $('#fx-notice').style.display = (!isFree && isAud) ? '' : 'none';
+  $('#fx-pair').textContent = `${money(totalUsd)} usd > ${money(totalAud)} aud`;
+  $('#fx-rate').textContent = `1 usd = ${rate.toFixed(4)} aud (${cfg.rate_source || 'live'} rate)`;
+  $('#pay-cur-tag').textContent = isFree ? 'free order' : (isAud ? 'aud' : 'usd');
+
+  const u = CC.user();
+  if (!u) {
+    $('#pay').textContent = 'sign in to checkout';
+  } else if (isFree) {
+    $('#pay').textContent = 'complete free order';
+  } else {
+    $('#pay').textContent = isAud
+      ? `pay ${money(totalAud)} aud with square`
+      : `pay ${money(totalUsd)} usd with square`;
+  }
+};
+
+$('#items').addEventListener('click', e => {
+  const row = e.target.closest('[data-k]'); if (!row) return;
+  const c = CC.cart(), i = c[+row.dataset.k];
+  if (e.target.closest('[data-rm]')) c.splice(+row.dataset.k, 1);
+  const d = e.target.closest('[data-d]'); if (d) { i.qty = Math.max(1, Math.min(10, i.qty + +d.dataset.d)); }
+  CC.saveCart(c); render();
+});
+
+$('#rm-promo').onclick = () => {
+  promo = null;
+  try { sessionStorage.removeItem('cc_applied_promo'); } catch {}
+  $('#code-f').classList.remove('bad');
+  toast('promo removed');
+  render();
+};
+
+$('#code-f').onsubmit = async e => {
+  e.preventDefault();
+  const v = $('#code').value.trim().toLowerCase();
+  if (!v) return;
+  $('#code-btn').disabled = true;
+  const data = await api('api/square.php?action=check_promo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: v })
+  });
+  $('#code-btn').disabled = false;
+
+  if (data.success) {
+    promo = {
+      code: data.code || v,
+      discount_percent: Number(data.discount_percent || 100),
+      uses_remaining: Number(data.uses_remaining || 0)
+    };
+    try { sessionStorage.setItem('cc_applied_promo', JSON.stringify(promo)); } catch {}
+    $('#code-f').classList.remove('bad');
+    $('#code').value = '';
+    toast(data.message || `${promo.code} applied`);
+    render();
+  } else {
+    promo = null;
+    try { sessionStorage.removeItem('cc_applied_promo'); } catch {}
+    $('#code-err').textContent = String(data.message || "that code isn't valid").toLowerCase();
+    $('#code-f').classList.add('bad');
+    render();
+  }
+};
+
+$('#pay').onclick = async () => {
+  clearPayErr();
+  const u = await ready;
+  if (!u) { location.href = 'login.html?next=cart.html'; return; }
+
+  const tosOk = $('#tos').checked;
+  $('#f-tos').classList.toggle('bad', !tosOk);
+  if (!tosOk) {
+    toast('tick the terms box first');
+    showPayErr('you must accept the terms of service before continuing.');
+    return;
+  }
+
+  const cfToken = turnstile.token('checkout');
+  if (turnstile.isActive() && !cfToken) {
+    showPayErr('please complete cloudflare verification before checking out.');
+    return;
+  }
+
+  const c = CC.cart();
+  if (!c.length) return;
+
+  const payloadItems = c.map(i => ({
+    product: TIERS[i.tier].name,
+    plan: TIERS[i.tier].len,
+    tier: i.tier,
+    quantity: i.qty
+  }));
+
+  $('#pay').disabled = true;
+  $('#pay').textContent = promo && promo.discount_percent >= 100 ? 'completing free order…' : 'connecting to square…';
+
+  const data = await api('api/square.php?action=create_checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      items: payloadItems,
+      email: u.email,
+      promo_code: promo ? promo.code : '',
+      tos_accepted: true,
+      cf_turnstile_response: cfToken
+    })
+  });
+
+  if (data.success) {
+    turnstile.reset('checkout');
+    if (data.checkout_url) {
+      location.href = data.checkout_url;
+      return;
+    }
+    CC.saveCart([]);
+    try { sessionStorage.removeItem('cc_applied_promo'); } catch {}
+    await CC.refreshSession();
+    $('#oid').textContent = data.order_id || 'completed';
+    $('#wrap').style.display = 'none';
+    $('#done').classList.add('show');
+    return;
+  }
+
+  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('checkout');
+  showPayErr(data.message || 'checkout failed. please try again.');
+  $('#pay').disabled = false;
+  render();
+};
+
+render();
+Promise.all([ready, getConfig()]).then(([, loadedCfg]) => {
+  cfg = loadedCfg;
+  turnstile.mount('checkout', 'turnstile-checkout');
+  render();
+});
+})();
+</script>
+</body>
+</html>

@@ -72,52 +72,67 @@ switch ($action) {
         $username = trim($input['username'] ?? '');
 
         if (empty($email)) {
-            jsonResponse(false, 'Email address is required.', [], 400);
+            jsonResponse(false, 'email address is required.', [], 400);
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            jsonResponse(false, 'Please provide a valid email address.', [], 400);
+            jsonResponse(false, 'please provide a valid email address.', [], 400);
+        }
+
+        if ($username !== '' && !preg_match('/^[a-zA-Z0-9_]{3,16}$/', $username)) {
+            jsonResponse(false, 'username must be 3 to 16 letters, numbers or underscores.', [], 400);
         }
 
         if (strlen($password) < 6) {
-            jsonResponse(false, 'Password must be at least 6 characters long.', [], 400);
+            jsonResponse(false, 'password must be at least 6 characters long.', [], 400);
         }
 
         if (!empty($confirmPassword) && $password !== $confirmPassword) {
-            jsonResponse(false, 'Passwords do not match.', [], 400);
+            jsonResponse(false, 'passwords do not match.', [], 400);
         }
 
-        // Check for existing user by email
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1');
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
-            jsonResponse(false, 'An account with this email already exists.', [], 409);
+            jsonResponse(false, 'an account with this email already exists.', [], 409);
         }
 
-        // Hash password securely
+        if ($username !== '') {
+            $uStmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(username) = ? LIMIT 1');
+            $uStmt->execute([strtolower($username)]);
+            if ($uStmt->fetch()) {
+                jsonResponse(false, 'that username is already taken.', [], 409);
+            }
+        } else {
+            $base = preg_replace('/[^a-zA-Z0-9_]/', '_', explode('@', $email)[0]) ?: 'user';
+            $base = substr($base, 0, 12);
+            $candidate = $base;
+            $uStmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(username) = ? LIMIT 1');
+            $uStmt->execute([strtolower($candidate)]);
+            if ($uStmt->fetch()) {
+                $candidate = substr($base, 0, 11) . '_' . bin2hex(random_bytes(2));
+            }
+            $username = $candidate;
+        }
+
         $hash = password_hash($password, PASSWORD_BCRYPT);
-
-        // Derive username from email if not given
-        if (empty($username)) {
-            $username = explode('@', $email)[0];
-        }
 
         $stmt = $pdo->prepare('INSERT INTO users (email, username, password_hash, role, created_at, last_login) VALUES (?, ?, ?, ?, datetime("now"), datetime("now"))');
         $stmt->execute([$email, $username, $hash, 'user']);
         $userId = (int)$pdo->lastInsertId();
 
-        // Establish session
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_email'] = $email;
         $_SESSION['username'] = $username;
 
-        jsonResponse(true, 'Account created successfully.', [
+        jsonResponse(true, 'account created successfully.', [
             'user' => [
                 'id' => $userId,
                 'email' => $email,
                 'username' => $username,
                 'created_at' => date('Y-m-d H:i:s'),
-                'keys' => []
+                'keys' => [],
+                'orders' => []
             ]
         ], 201);
         break;
@@ -132,41 +147,37 @@ switch ($action) {
             jsonResponse(false, 'please complete cloudflare verification before logging in.', ['turnstile_reset' => true], 400);
         }
 
-        $email = trim(strtolower($input['email'] ?? ''));
+        $identifier = trim(strtolower($input['email'] ?? $input['id'] ?? ''));
         $password = $input['password'] ?? '';
 
-        if (empty($email) || empty($password)) {
-            jsonResponse(false, 'Email and password are required.', [], 400);
+        if (empty($identifier) || empty($password)) {
+            jsonResponse(false, 'email or username and password are required.', [], 400);
         }
 
-        $stmt = $pdo->prepare('SELECT id, email, username, password_hash, role, created_at FROM users WHERE email = ? LIMIT 1');
-        $stmt->execute([$email]);
+        $stmt = $pdo->prepare('SELECT id, email, username, password_hash, role, created_at FROM users WHERE LOWER(email) = ? OR LOWER(username) = ? LIMIT 1');
+        $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            jsonResponse(false, 'Invalid email or password.', [], 401);
+            jsonResponse(false, 'wrong email, username or password.', [], 401);
         }
 
-        // Update last login
         $updateStmt = $pdo->prepare('UPDATE users SET last_login = datetime("now") WHERE id = ?');
         $updateStmt->execute([$user['id']]);
 
-        // Establish session
         $_SESSION['user_id'] = (int)$user['id'];
         $_SESSION['user_email'] = $user['email'];
         $_SESSION['username'] = $user['username'];
 
-        // Fetch user keys
         $keysStmt = $pdo->prepare('SELECT id, license_key, product, plan, order_id, status, created_at FROM user_keys WHERE user_id = ? ORDER BY id DESC');
         $keysStmt->execute([$user['id']]);
         $keys = $keysStmt->fetchAll();
 
-        // Fetch user orders
         $ordersStmt = $pdo->prepare('SELECT order_id, amount, currency, status, items, created_at FROM orders WHERE user_id = ? ORDER BY id DESC');
         $ordersStmt->execute([$user['id']]);
         $orders = $ordersStmt->fetchAll();
 
-        jsonResponse(true, 'Logged in successfully.', [
+        jsonResponse(true, 'logged in successfully.', [
             'user' => [
                 'id' => (int)$user['id'],
                 'email' => $user['email'],
@@ -273,7 +284,150 @@ switch ($action) {
         ]);
         break;
 
+    case 'forgot':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $turnstileResult = verifyTurnstileToken((string)($input['cf_turnstile_response'] ?? $input['turnstile_token'] ?? ''));
+        if (!$turnstileResult['ok']) {
+            jsonResponse(false, 'please complete cloudflare verification first.', ['turnstile_reset' => true], 400);
+        }
+
+        $email = trim(strtolower($input['email'] ?? ''));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            jsonResponse(false, 'please provide a valid email address.', [], 400);
+        }
+
+        jsonResponse(false, 'automated password reset emails are not enabled yet. open a support ticket on discord for manual recovery.', [
+            'code' => 'no_smtp',
+            'discord_url' => 'https://discord.gg/Et76gjWDX2'
+        ], 200);
+        break;
+
+    case 'update_profile':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            jsonResponse(false, 'please sign in first.', [], 401);
+        }
+
+        $username = trim($input['username'] ?? '');
+        $email = trim(strtolower($input['email'] ?? ''));
+
+        if (!preg_match('/^[a-zA-Z0-9_]{3,16}$/', $username)) {
+            jsonResponse(false, 'username must be 3 to 16 letters, numbers or underscores.', [], 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            jsonResponse(false, 'please provide a valid email address.', [], 400);
+        }
+
+        $eStmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = ? AND id != ? LIMIT 1');
+        $eStmt->execute([$email, $userId]);
+        if ($eStmt->fetch()) {
+            jsonResponse(false, 'that email is already used by another account.', [], 409);
+        }
+
+        $uStmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(username) = ? AND id != ? LIMIT 1');
+        $uStmt->execute([strtolower($username), $userId]);
+        if ($uStmt->fetch()) {
+            jsonResponse(false, 'that username is already taken.', [], 409);
+        }
+
+        $upd = $pdo->prepare('UPDATE users SET username = ?, email = ? WHERE id = ?');
+        $upd->execute([$username, $email, $userId]);
+
+        $_SESSION['user_email'] = $email;
+        $_SESSION['username'] = $username;
+
+        jsonResponse(true, 'profile saved.', [
+            'user' => [
+                'id' => (int)$userId,
+                'email' => $email,
+                'username' => $username
+            ]
+        ]);
+        break;
+
+    case 'change_password':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            jsonResponse(false, 'please sign in first.', [], 401);
+        }
+
+        $current = $input['current_password'] ?? '';
+        $nextPw = $input['new_password'] ?? '';
+
+        if (strlen($nextPw) < 8) {
+            jsonResponse(false, 'new password must be at least 8 characters.', [], 400);
+        }
+
+        $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        if (!$row || !password_verify($current, $row['password_hash'])) {
+            jsonResponse(false, 'current password is incorrect.', [], 401);
+        }
+
+        $newHash = password_hash($nextPw, PASSWORD_BCRYPT);
+        $upd = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+        $upd->execute([$newHash, $userId]);
+
+        jsonResponse(true, 'password updated.');
+        break;
+
+    case 'delete_account':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            jsonResponse(false, 'please sign in first.', [], 401);
+        }
+
+        $confirm = trim($input['confirm'] ?? '');
+        if ($confirm !== 'DELETE') {
+            jsonResponse(false, 'confirmation text must match DELETE.', [], 400);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('DELETE FROM promo_redemptions WHERE user_id = ?')->execute([$userId]);
+            $pdo->prepare('DELETE FROM user_keys WHERE user_id = ?')->execute([$userId]);
+            $pdo->prepare('DELETE FROM orders WHERE user_id = ?')->execute([$userId]);
+            $pdo->prepare('DELETE FROM user_sessions WHERE user_id = ?')->execute([$userId]);
+            $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$userId]);
+            $pdo->commit();
+        } catch (Throwable $txErr) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $txErr;
+        }
+
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params['path'], $params['domain'],
+                $params['secure'], $params['httponly']
+            );
+        }
+        session_destroy();
+
+        jsonResponse(true, 'account deleted.');
+        break;
+
     default:
-        jsonResponse(false, 'Invalid action. Supported: register, login, me, logout, redeem_key.', [], 400);
+        jsonResponse(false, 'invalid action.', [], 400);
         break;
 }

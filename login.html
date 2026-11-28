@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sign in — chudcheats.xyz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<link rel="stylesheet" href="kit.css"><link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="auth">
+  <div class="auth-art" style="background-image:url(img/auth-login.jpg);background-position:70% 60%">
+    <a class="logo" href="index.html"><span>chudcheats<b>.xyz</b></span></a>
+    <div class="card-in"><div class="hd"><small>status · now</small><b>orbit is undetected</b></div>
+      <div class="kv"><div><span>build</span><b>2611.28</b></div><div><span>loader</span><b class="ok">operational</b></div><div><span>support</span><b class="ok">online</b></div></div></div>
+    <div class="quote"><p>if everyone is cheating, nobody is.</p><div class="tags"><span class="tagq dim">"created control."</span></div></div>
+  </div>
+  <div class="auth-side">
+    <a class="back" href="index.html">← back to site</a>
+    <form class="auth-form" id="f" novalidate>
+      <h1>welcome back<br><span class="muted">sign in to your keys</span></h1>
+      <p>your keys, loader download and hwid resets are all in my keys.</p>
+      <div class="field" id="f-id"><label for="id">email or username</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 14c.8-2.8 3-4.2 5.5-4.2s4.7 1.4 5.5 4.2"/></svg><input id="id" name="id" autocomplete="username" placeholder="you@email.com"></div>
+        <span class="err">enter your email or username</span></div>
+      <div class="field" id="f-pw"><label for="pw">password <a href="forgot.html">forgot?</a></label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg><input id="pw" name="password" type="password" autocomplete="current-password" placeholder="your password"><button type="button" data-show="pw">show</button></div>
+        <span class="err">enter your password</span></div>
+      <label class="check"><input type="checkbox" checked><span>keep me signed in on this pc</span></label>
+      <div class="turnstile-slot" id="turnstile-login"></div>
+      <div class="flash bad" id="flash">wrong email or password.</div>
+      <button class="btn btn-acc btn-block" id="go">sign in</button>
+      <div class="or">or</div>
+      <button type="button" class="btn btn-discord" id="dc"><svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.6 19.6 0 0015.4 3l-.6 1.3a18 18 0 00-5.6 0L8.6 3a19.5 19.5 0 00-4.9 1.4C.6 9 0 13.6.3 18.1A19.8 19.8 0 006.3 21l1.3-2a12.8 12.8 0 01-2-1l.5-.4a14.1 14.1 0 0011.8 0l.5.4a12.7 12.7 0 01-2 1l1.3 2a19.7 19.7 0 006-3c.4-5.2-.7-9.8-3.4-13.6zM8.7 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm6.6 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg>continue with discord</button>
+      <p class="note">new here? <a href="register.html" id="reg-link">create an account</a></p>
+    </form>
+  </div>
+</div>
+<script src="site.js"></script>
+<script>
+(() => {
+const { $, $$, api, ready, turnstile, paintUser } = CC;
+const rawNext = new URLSearchParams(location.search).get('next') || '';
+const next = (rawNext && !/^[a-z]+:/i.test(rawNext) && !rawNext.startsWith('//')) ? rawNext : 'dashboard.html';
+if (rawNext && $('#reg-link')) $('#reg-link').href = 'register.html?next=' + encodeURIComponent(next);
+
+ready.then(u => { if (u) location.replace(next); });
+turnstile.mount('login', 'turnstile-login');
+
+$$('[data-show]').forEach(b => b.onclick = () => {
+  const i = $('#' + b.dataset.show);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  b.textContent = i.type === 'password' ? 'show' : 'hide';
+});
+
+const showErr = msg => {
+  const f = $('#flash');
+  f.className = 'flash show bad';
+  f.textContent = String(msg || 'wrong email or password.').toLowerCase();
+};
+
+$('#f').onsubmit = async e => {
+  e.preventDefault();
+  $('#flash').className = 'flash bad';
+  const id = $('#id').value.trim(), pw = $('#pw').value;
+  $('#f-id').classList.toggle('bad', !id);
+  $('#f-pw').classList.toggle('bad', !pw);
+  if (!id || !pw) return;
+
+  const cfToken = turnstile.token('login');
+  if (turnstile.isActive() && !cfToken) {
+    showErr('please complete cloudflare verification before signing in.');
+    return;
+  }
+
+  $('#go').disabled = true;
+  $('#go').textContent = 'signing in…';
+
+  const data = await api('api/auth.php?action=login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: id, password: pw, cf_turnstile_response: cfToken })
+  });
+
+  if (data.success && data.user) {
+    paintUser(data.user);
+    turnstile.reset('login');
+    location.href = next;
+    return;
+  }
+
+  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('login');
+  showErr(data.message || 'wrong email, username or password.');
+  $('#go').disabled = false;
+  $('#go').textContent = 'sign in';
+};
+
+$('#dc').onclick = () => showErr('discord sign-in is not enabled yet — sign in with your email or username.');
+})();
+</script>
+</body>
+</html>

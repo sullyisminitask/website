@@ -173,7 +173,7 @@ function getUsdToAudRate(bool $forceRefresh = false): array {
     ];
 }
 
-function generateLicenseKey(string $product = 'rust-orbit'): string {
+function generateLicenseKey(string $product = 'orbit'): string {
     $prefix = strtolower(str_replace(' ', '-', trim($product)));
     $p1 = bin2hex(random_bytes(2));
     $p2 = bin2hex(random_bytes(2));
@@ -183,10 +183,19 @@ function generateLicenseKey(string $product = 'rust-orbit'): string {
 
 function getServerPlanPrice(string $plan): ?float {
     $catalog = [
+        '1d' => 7.99,
         '1 day' => 7.99,
+        '3d' => 16.99,
         '3 day' => 16.99,
-        'week' => 25.99,
-        'month' => 54.99,
+        '3 days' => 16.99,
+        '7d' => 19.99,
+        '7 day' => 19.99,
+        '7 days' => 19.99,
+        'week' => 19.99,
+        '30d' => 39.99,
+        '30 day' => 39.99,
+        '30 days' => 39.99,
+        'month' => 39.99,
         '3 month' => 139.99,
     ];
     $key = strtolower(trim($plan));
@@ -200,7 +209,7 @@ function issueKeysForOrder(PDO $pdo, array $order): array {
     $generatedKeys = [];
 
     foreach ($items as $item) {
-        $product = $item['product'] ?? $item['name'] ?? 'rust orbit';
+        $product = $item['product'] ?? $item['name'] ?? 'orbit';
         $plan = $item['plan'] ?? '1 day';
         $qty = intval($item['quantity'] ?? 1);
         if ($qty < 1) $qty = 1;
@@ -396,7 +405,7 @@ try {
         $normalizedItems = [];
 
         foreach ($items as $item) {
-            $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'rust orbit'));
+            $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'orbit'));
             $plan = strtolower(trim($item['plan'] ?? '1 day'));
             $serverPriceUsd = getServerPlanPrice($plan);
             if ($serverPriceUsd === null) {
@@ -612,7 +621,7 @@ try {
         $userId = intval($_GET['uid'] ?? ($_SESSION['user_id'] ?? 0));
 
         if (empty($orderId)) {
-            header('Location: /#my-keys');
+            header('Location: /dashboard.html');
             exit;
         }
 
@@ -621,7 +630,7 @@ try {
         $order = $stmt->fetch();
 
         if (!$order) {
-            header('Location: /#my-keys');
+            header('Location: /dashboard.html');
             exit;
         }
 
@@ -638,7 +647,7 @@ try {
         }
 
         if ($order['status'] === 'completed') {
-            header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
+            header('Location: /dashboard.html?payment_success=1&order=' . urlencode($orderId));
             exit;
         }
 
@@ -650,16 +659,16 @@ try {
                     $pUpd->execute([$verification['payment_id'], $orderId]);
                 }
                 issueKeysForOrder($pdo, $order);
-                header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
+                header('Location: /dashboard.html?payment_success=1&order=' . urlencode($orderId));
                 exit;
             }
 
-            header('Location: /?payment_pending=1&order=' . urlencode($orderId) . '#my-keys');
+            header('Location: /dashboard.html?payment_pending=1&order=' . urlencode($orderId));
             exit;
         }
 
         issueKeysForOrder($pdo, $order);
-        header('Location: /?payment_success=1&order=' . urlencode($orderId) . '#my-keys');
+        header('Location: /dashboard.html?payment_success=1&order=' . urlencode($orderId));
         exit;
 
     default:
