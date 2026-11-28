@@ -437,57 +437,57 @@ body {
 .hero-right {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: flex-end;
-  min-height: 500px;
+  align-items: center;
+  gap: 14px;
 }
 
 .hero-image-wrap {
   position: relative;
   width: 100%;
   max-width: 600px;
-  display: flex;
-  justify-content: center;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  background: #060913;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.8), 0 0 36px rgba(125, 211, 252, 0.12);
 }
 
 .hero-image-wrap::before {
   content: "";
   position: absolute;
-  inset: 8% 10% 8% 10%;
-  background: radial-gradient(circle at 55% 45%, rgba(125, 211, 252, 0.16) 0%, rgba(25, 45, 95, 0.35) 45%, transparent 72%);
-  filter: blur(40px);
-  z-index: 0;
+  inset: 0;
+  background: radial-gradient(circle at 70% 50%, rgba(125, 211, 252, 0.14) 0%, transparent 65%);
   pointer-events: none;
+  z-index: 2;
 }
 
 .hero-image {
   position: relative;
   z-index: 1;
   width: 100%;
-  max-height: 540px;
-  object-fit: contain;
-  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.92));
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: cover;
+  object-position: center;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
 }
 
-.hero-image:hover {
+.hero-image-wrap:hover .hero-image {
   transform: scale(1.03);
 }
 
 /* rdc.zone interactive launcher mockup card */
 .hero-launcher-card {
-  position: absolute;
-  right: 0;
-  bottom: 14px;
-  z-index: 5;
-  width: 296px;
+  position: relative;
+  width: 100%;
+  max-width: 600px;
   background: rgba(16, 18, 24, 0.94);
   backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.78), 0 0 28px rgba(125, 211, 252, 0.08);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.72), 0 0 24px rgba(125, 211, 252, 0.08);
   overflow: hidden;
 }
 
@@ -1081,8 +1081,8 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 270px;
-  background: #02040a;
+  min-height: 215px;
+  background: #060913;
   overflow: hidden;
 }
 
@@ -1337,8 +1337,9 @@ body {
 
 .card-image-box {
   width: 100%;
-  height: 290px;
-  background: #02040a;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  background: #060913;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3349,16 +3350,9 @@ body {
   .features-accordion {
     grid-template-columns: repeat(2, 1fr);
   }
-  .hero-launcher-card {
-    position: static;
-    margin: 16px auto 0 auto;
-    width: 100%;
-    max-width: 340px;
-  }
   .hero-right {
     flex-direction: column;
     align-items: center;
-    min-height: auto;
   }
 }
 

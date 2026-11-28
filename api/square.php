@@ -172,7 +172,7 @@ function getUsdToAudRate(bool $forceRefresh = false): array {
     ];
 }
 
-function generateLicenseKey(string $product = 'rust-elite'): string {
+function generateLicenseKey(string $product = 'rust-orbit'): string {
     $prefix = strtolower(str_replace(' ', '-', trim($product)));
     $p1 = bin2hex(random_bytes(2));
     $p2 = bin2hex(random_bytes(2));
@@ -199,7 +199,7 @@ function issueKeysForOrder(PDO $pdo, array $order): array {
     $generatedKeys = [];
 
     foreach ($items as $item) {
-        $product = $item['product'] ?? $item['name'] ?? 'rust elite';
+        $product = $item['product'] ?? $item['name'] ?? 'rust orbit';
         $plan = $item['plan'] ?? '1 day';
         $qty = intval($item['quantity'] ?? 1);
         if ($qty < 1) $qty = 1;
@@ -387,7 +387,7 @@ try {
         $normalizedItems = [];
 
         foreach ($items as $item) {
-            $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'rust elite'));
+            $name = strtolower(trim($item['product'] ?? $item['name'] ?? 'rust orbit'));
             $plan = strtolower(trim($item['plan'] ?? '1 day'));
             $serverPriceUsd = getServerPlanPrice($plan);
             if ($serverPriceUsd === null) {

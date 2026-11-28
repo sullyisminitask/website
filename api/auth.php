@@ -227,7 +227,7 @@ switch ($action) {
 
         $userId = $_SESSION['user_id'] ?? null;
         $key = trim($input['license_key'] ?? '');
-        $product = trim($input['product'] ?? 'rust elite');
+        $product = trim($input['product'] ?? 'rust orbit');
 
         if (empty($key)) {
             jsonResponse(false, 'Please enter a license key.', [], 400);

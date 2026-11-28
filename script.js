@@ -114,9 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // product card clicks in shop & mini shop
-  const cardRustElite = document.getElementById('card-rust-elite');
-  if (cardRustElite) {
-    cardRustElite.addEventListener('click', () => {
+  const cardRustOrbit = document.getElementById('card-rust-orbit');
+  if (cardRustOrbit) {
+    cardRustOrbit.addEventListener('click', () => {
       switchView('product');
     });
   }
@@ -154,13 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const addToCartBtn = document.getElementById('add-to-cart-btn');
   if (addToCartBtn) {
     addToCartBtn.addEventListener('click', () => {
-      const existing = cart.find(i => (i.product || i.name) === 'rust elite' && i.plan === selectedPlan.name);
+      const existing = cart.find(i => (i.product || i.name) === 'rust orbit' && i.plan === selectedPlan.name);
       if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
       } else {
         cart.push({
-          name: 'rust elite',
-          product: 'rust elite',
+          name: 'rust orbit',
+          product: 'rust orbit',
           plan: selectedPlan.name,
           price: selectedPlan.price,
           quantity: 1
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       saveCart();
       updateCartUI();
-      showToast(`added rust elite (${selectedPlan.name}) to cart`);
+      showToast(`added rust orbit (${selectedPlan.name}) to cart`);
       openCart();
     });
   }
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.className = 'cart-item-row';
       row.innerHTML = `
         <div>
-          <div class="cart-item-title">${item.product || item.name || 'rust elite'}</div>
+          <div class="cart-item-title">${item.product || item.name || 'rust orbit'}</div>
           <div class="cart-item-plan">${item.plan} license × ${qty}</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
@@ -309,13 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       const planName = btn.getAttribute('data-quick-plan');
       const priceVal = parseFloat(btn.getAttribute('data-quick-price') || '16.99');
-      const existing = cart.find(i => (i.product || i.name) === 'rust elite' && i.plan === planName);
+      const existing = cart.find(i => (i.product || i.name) === 'rust orbit' && i.plan === planName);
       if (existing) {
         existing.quantity = (existing.quantity || 1) + 1;
       } else {
         cart.push({
-          name: 'rust elite',
-          product: 'rust elite',
+          name: 'rust orbit',
+          product: 'rust orbit',
           plan: planName,
           price: priceVal,
           quantity: 1
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       saveCart();
       updateCartUI();
-      showToast(`added rust elite (${planName}) to cart`);
+      showToast(`added rust orbit (${planName}) to cart`);
       openCart();
     });
   });
@@ -332,11 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const shopSearch = document.getElementById('shop-search');
   const stockCount = document.getElementById('stock-count');
 
-  if (shopSearch && cardRustElite) {
+  if (shopSearch && cardRustOrbit) {
     shopSearch.addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase().trim();
-      const match = 'rust elite'.includes(q) || 'rust'.includes(q) || q === '';
-      cardRustElite.style.display = match ? 'flex' : 'none';
+      const match = 'rust orbit'.includes(q) || 'rust'.includes(q) || q === '';
+      cardRustOrbit.style.display = match ? 'flex' : 'none';
       if (stockCount) {
         stockCount.textContent = match ? '1' : '0';
       }
@@ -490,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const card = document.createElement('div');
           card.className = 'key-card-item';
           const keyVal = (item.license_key || item.key || '').toLowerCase();
-          const prodName = (item.product || 'rust elite').toLowerCase();
+          const prodName = (item.product || 'rust orbit').toLowerCase();
           const planName = (item.plan || '1 day').toLowerCase();
           const orderRef = item.order_id ? item.order_id.toLowerCase() : '';
           const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'recent';
@@ -565,11 +565,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ordersAll.forEach(ord => {
           const card = document.createElement('div');
           card.className = 'order-card-item';
-          let itemsDesc = 'rust elite';
+          let itemsDesc = 'rust orbit';
           try {
             const parsed = JSON.parse(ord.items || '[]');
             if (Array.isArray(parsed) && parsed.length > 0) {
-              itemsDesc = parsed.map(i => `${i.product || i.name || 'rust elite'} (${i.plan || '1 day'}) × ${i.quantity || 1}`).join(', ');
+              itemsDesc = parsed.map(i => `${i.product || i.name || 'rust orbit'} (${i.plan || '1 day'}) × ${i.quantity || 1}`).join(', ');
             }
           } catch (e) {}
 
@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('api/auth.php?action=redeem_key', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ license_key: key, product: 'rust elite' })
+          body: JSON.stringify({ license_key: key, product: 'rust orbit' })
         });
         const data = await res.json();
         if (data.success) {
@@ -654,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (currentUser) {
             await checkAuthSession();
           } else {
-            guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
+            guestKeys.unshift({ license_key: key, product: 'rust orbit', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
             localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
             renderMyKeys();
           }
@@ -665,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } catch (err) {
-        guestKeys.unshift({ license_key: key, product: 'rust elite', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
+        guestKeys.unshift({ license_key: key, product: 'rust orbit', plan: 'custom', status: 'active', created_at: new Date().toISOString().split('T')[0] });
         localStorage.setItem('guest_keys', JSON.stringify(guestKeys));
         renderMyKeys();
         if (keyFeedback) {
@@ -766,7 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'profile-key-card';
             card.innerHTML = `
               <span class="profile-key-code">${(k.license_key || '').toLowerCase()}</span>
-              <span class="profile-key-tag">${k.product || 'rust elite'} (${k.plan || '1 day'})</span>
+              <span class="profile-key-tag">${k.product || 'rust orbit'} (${k.plan || '1 day'})</span>
             `;
             profileKeysList.appendChild(card);
           });
@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkoutItemsList.innerHTML = '';
       cart.forEach(item => {
         const qty = item.quantity || 1;
-        const prodName = item.product || item.name || 'rust elite';
+        const prodName = item.product || item.name || 'rust orbit';
         const itemTotal = item.price * qty;
         const row = document.createElement('div');
         row.className = 'checkout-item-row';
