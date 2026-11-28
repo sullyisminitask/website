@@ -82,7 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.classList.toggle('active', tab.getAttribute('data-tab') === viewName);
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.smoothScrollTo) {
+      window.smoothScrollTo(0);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     history.replaceState(null, '', window.location.pathname + '#' + viewName);
   }
 
@@ -274,7 +278,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (heroScrollHint) {
     heroScrollHint.addEventListener('click', () => {
       const target = document.getElementById('home-advantages');
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      if (!target) return;
+      const top = target.getBoundingClientRect().top + window.scrollY - 84;
+      if (window.smoothScrollTo) {
+        window.smoothScrollTo(top);
+      } else {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     });
   }
 
