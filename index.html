@@ -289,11 +289,11 @@ main > section.cta{margin-top:var(--sec)}
     <p>the status board updates every minute. if a rust patch lands, orbit shows "updating" until it's safe again.</p>
   </div>
   <div class="stat" data-reveal>
-    <div class="stat-top"><span class="live">all systems operational</span><span class="sp"></span><small id="chk">last checked 4s ago</small></div>
-    <div class="srow"><div><b>orbit</b><small>external · build 2611.28</small></div><div class="bars" id="bars0"></div><span class="st g">undetected</span></div>
-    <div class="srow"><div><b>loader</b><small>windows 10 / 11</small></div><div class="bars" id="bars1"></div><span class="st g">operational</span></div>
-    <div class="srow"><div><b>key delivery</b><small>checkout → my keys</small></div><div class="bars" id="bars2"></div><span class="st g">operational</span></div>
-    <div class="srow"><div><b>support</b><small>discord tickets</small></div><div class="bars" id="bars3"></div><span class="st g">online</span></div>
+    <div class="stat-top"><span class="live" id="st-overall">all systems operational</span><span class="sp"></span><small id="chk">last checked 4s ago</small></div>
+    <div class="srow" data-st="orbit"><div><b>orbit</b><small>external · build 2611.28</small></div><div class="bars" id="bars0"></div><span class="st g">undetected</span></div>
+    <div class="srow" data-st="loader"><div><b>loader</b><small>windows 10 / 11</small></div><div class="bars" id="bars1"></div><span class="st g">operational</span></div>
+    <div class="srow" data-st="delivery"><div><b>key delivery</b><small>checkout → my keys</small></div><div class="bars" id="bars2"></div><span class="st g">operational</span></div>
+    <div class="srow" data-st="support"><div><b>support</b><small>discord tickets</small></div><div class="bars" id="bars3"></div><span class="st g">online</span></div>
   </div>
 </section>
 
@@ -404,7 +404,41 @@ main > section.cta{margin-top:var(--sec)}
 (() => {
 const { $, $$, loop, sleep, tween, roll, EASE, RM } = Kit;
 const pad = n => String(n).padStart(2, '0');
-if ($('#news-f')) $('#news-f').onsubmit = e => { e.preventDefault(); CC.toast('patch alerts post first in #announcements on discord'); };
+if ($('#news-f')) {
+  $('#news-f').onsubmit = async e => {
+    e.preventDefault();
+    const inp = $('#news-f input[type="email"]');
+    const email = inp ? inp.value.trim().toLowerCase() : '';
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      CC.toast('enter a valid email address');
+      return;
+    }
+    const res = await CC.api('api/status.php?action=subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (res.success && inp) inp.value = '';
+    CC.toast(res.message || 'subscribed to patch alerts');
+  };
+}
+
+CC.api('api/status.php?action=status').then(st => {
+  if (!st || !st.success) return;
+  if ($('#st-overall') && st.overall) $('#st-overall').textContent = String(st.overall).toLowerCase();
+  if (Array.isArray(st.components)) {
+    st.components.forEach(c => {
+      const row = $(`.srow[data-st="${c.component_key}"]`);
+      if (!row) return;
+      const d = $('small', row), badge = $('.st', row);
+      if (d && c.detail) d.textContent = String(c.detail).toLowerCase();
+      if (badge && c.status) {
+        badge.textContent = String(c.status).toLowerCase();
+        badge.className = 'st ' + (c.badge_class || 'g');
+      }
+    });
+  }
+});
 
 /* ---------- hero loader: launch → attach → live session ---------- */
 let left = ((6 * 24 + 14) * 60 + 2) * 60 + 31;

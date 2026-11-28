@@ -17,29 +17,133 @@
   </div>
   <div class="auth-side">
     <a class="back" href="login.html">← back to sign in</a>
+
+    <!-- Step 1: Request reset link -->
     <form class="auth-form" id="f" novalidate>
-      <h1>reset your password<br><span class="muted">recover your account</span></h1>
-      <p>enter the email on your account to request recovery or open a ticket on discord.</p>
+      <h1>reset your password<br><span class="muted">we'll email you a link</span></h1>
+      <p>enter the email on your account. the link works for 30 minutes.</p>
       <div class="field" id="f-email"><label for="email">email</label>
         <div class="inp"><svg viewBox="0 0 16 16"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5"/></svg><input id="email" type="email" autocomplete="email" placeholder="you@email.com"></div>
         <span class="err">enter a valid email</span></div>
       <div class="turnstile-slot" id="turnstile-forgot"></div>
       <div class="flash bad" id="flash"></div>
-      <button class="btn btn-acc btn-block" id="go">request reset</button>
-      <p class="note">need help now? <a href="https://discord.gg/Et76gjWDX2">open a ticket on discord</a></p>
+      <button class="btn btn-acc btn-block" id="go">send reset link</button>
+      <p class="note">no access to that email? <a href="https://discord.gg/Et76gjWDX2">open a ticket on discord</a></p>
+    </form>
+
+    <!-- Step 2: Check inbox screen -->
+    <div class="auth-form sent" id="sent">
+      <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5L12 13l8.5-6.5"/></svg></div>
+      <h1>check your inbox</h1>
+      <p>if <b id="to" style="color:var(--ink);font-weight:500"></b> has an account, a reset link is on its way. check spam too.</p>
+      <button class="btn btn-line btn-block" id="again" disabled>resend in 30s</button>
+      <p class="note"><a href="login.html">back to sign in</a> · <a href="https://discord.gg/Et76gjWDX2">discord support</a></p>
+    </div>
+
+    <!-- Step 3: Set new password via ?token= -->
+    <form class="auth-form" id="reset-f" style="display:none" novalidate>
+      <h1>choose a new password<br><span class="muted">at least 8 characters</span></h1>
+      <p>once saved, you will be signed in to my keys right away.</p>
+      <div class="field" id="f-pw"><label for="pw">new password <span id="pw-l" class="mono" style="font-size:11px;color:var(--ink-3)"></span></label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg><input id="pw" type="password" autocomplete="new-password" placeholder="at least 8 characters"><button type="button" data-show="pw">show</button></div>
+        <div class="strength" id="str"><i></i><i></i><i></i><i></i></div>
+        <span class="err">use at least 8 characters</span></div>
+      <div class="field" id="f-pw2"><label for="pw2">confirm password</label>
+        <div class="inp"><svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 016 0v2"/></svg><input id="pw2" type="password" autocomplete="new-password" placeholder="same password again"></div>
+        <span class="err">passwords don't match</span></div>
+      <div class="flash bad" id="r-flash"></div>
+      <button class="btn btn-acc btn-block" id="r-go">save new password</button>
+      <p class="note"><a href="forgot.html">request a new link</a></p>
     </form>
   </div>
 </div>
 <script src="site.js"></script>
 <script>
 (() => {
-const { $, api, turnstile } = CC;
+const { $, $$, api, turnstile, toast, paintUser } = CC;
+const token = (new URLSearchParams(location.search).get('token') || '').trim();
+
+$$('[data-show]').forEach(b => b.onclick = () => {
+  const i = $('#' + b.dataset.show);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  b.textContent = i.type === 'password' ? 'show' : 'hide';
+});
+
+if (token) {
+  $('#f').style.display = 'none';
+  $('#reset-f').style.display = 'block';
+  const score = p => (p.length >= 8) + (p.length >= 12) + (/[A-Z]/.test(p) && /[a-z]/.test(p)) + (/[\d\W]/.test(p));
+  $('#pw').oninput = () => {
+    const s = $('#pw').value ? Math.max(1, score($('#pw').value)) : 0;
+    $('#str').className = 'strength' + (s ? ' s' + s : '');
+    $('#pw-l').textContent = ['', 'weak', 'okay', 'good', 'strong'][s];
+  };
+  $('#reset-f').onsubmit = async e => {
+    e.preventDefault();
+    $('#r-flash').className = 'flash bad';
+    const pw = $('#pw').value, pw2 = $('#pw2').value;
+    $('#f-pw').classList.toggle('bad', pw.length < 8);
+    $('#f-pw2').classList.toggle('bad', !pw2 || pw !== pw2);
+    if (pw.length < 8 || !pw2 || pw !== pw2) return;
+
+    $('#r-go').disabled = true;
+    $('#r-go').textContent = 'saving…';
+    const data = await api('api/auth.php?action=reset_password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: pw, confirm_password: pw2 })
+    });
+    if (data.success) {
+      if (data.user) paintUser(data.user);
+      toast(data.message || 'password updated');
+      location.href = 'dashboard.html';
+      return;
+    }
+    $('#r-flash').className = 'flash show bad';
+    $('#r-flash').textContent = String(data.message || 'reset link is invalid or expired.').toLowerCase();
+    $('#r-go').disabled = false;
+    $('#r-go').textContent = 'save new password';
+  };
+  return;
+}
+
 turnstile.mount('forgot', 'turnstile-forgot');
+let timerId, lastEmail = '';
+
+const startTimer = () => {
+  let s = 30;
+  $('#again').disabled = true;
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    s--;
+    $('#again').textContent = s > 0 ? `resend in ${s}s` : 'resend link';
+    if (s <= 0) { clearInterval(timerId); $('#again').disabled = false; }
+  }, 1000);
+};
 
 const showErr = msg => {
   const fl = $('#flash');
   fl.className = 'flash show bad';
   fl.textContent = String(msg || 'request failed.').toLowerCase();
+};
+
+const submitForgot = async email => {
+  const cfToken = turnstile.token('forgot');
+  if (turnstile.isActive() && !cfToken) {
+    showErr('please complete cloudflare verification first.');
+    return false;
+  }
+  const data = await api('api/auth.php?action=forgot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, cf_turnstile_response: cfToken })
+  });
+  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('forgot');
+  if (!data.success) {
+    showErr(data.message || 'could not send reset link.');
+    return false;
+  }
+  return true;
 };
 
 $('#f').onsubmit = async e => {
@@ -49,23 +153,27 @@ $('#f').onsubmit = async e => {
   $('#f-email').classList.toggle('bad', bad);
   if (bad) return;
 
-  const cfToken = turnstile.token('forgot');
-  if (turnstile.isActive() && !cfToken) {
-    showErr('please complete cloudflare verification first.');
-    return;
-  }
-
   $('#go').disabled = true;
-  $('#go').textContent = 'checking…';
-  const data = await api('api/auth.php?action=forgot', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, cf_turnstile_response: cfToken })
-  });
-  if (data.turnstile_reset || turnstile.isActive()) turnstile.reset('forgot');
-  showErr(data.message || 'open a support ticket on discord to reset your password.');
+  $('#go').textContent = 'sending…';
+  const ok = await submitForgot(email);
   $('#go').disabled = false;
-  $('#go').textContent = 'request reset';
+  $('#go').textContent = 'send reset link';
+  if (!ok) return;
+
+  lastEmail = email;
+  $('#to').textContent = email;
+  $('#f').style.display = 'none';
+  $('#sent').classList.add('show');
+  startTimer();
+};
+
+$('#again').onclick = async () => {
+  if (!lastEmail) return;
+  $('#again').disabled = true;
+  $('#again').textContent = 'sending…';
+  const ok = await submitForgot(lastEmail);
+  if (ok) toast('reset link sent again');
+  startTimer();
 };
 })();
 </script>

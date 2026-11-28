@@ -203,9 +203,19 @@ function getServerPlanPrice(string $plan): ?float {
 }
 
 function issueKeysForOrder(PDO $pdo, array $order): array {
+    $orderId = $order['order_id'];
+
+    // Idempotency guard: if keys were already issued for this order, return them
+    $existingStmt = $pdo->prepare('SELECT license_key, product, plan, order_id, status, expires_at FROM user_keys WHERE order_id = ? ORDER BY id ASC');
+    $existingStmt->execute([$orderId]);
+    $existingKeys = $existingStmt->fetchAll();
+    if (!empty($existingKeys)) {
+        $pdo->prepare('UPDATE orders SET status = "completed" WHERE order_id = ?')->execute([$orderId]);
+        return $existingKeys;
+    }
+
     $items = json_decode($order['items'], true) ?: [];
     $userId = (int)$order['user_id'];
-    $orderId = $order['order_id'];
     $generatedKeys = [];
 
     foreach ($items as $item) {
@@ -214,17 +224,41 @@ function issueKeysForOrder(PDO $pdo, array $order): array {
         $qty = intval($item['quantity'] ?? 1);
         if ($qty < 1) $qty = 1;
 
+        $days = getPlanDurationDays($plan);
+        $maxResets = getPlanMaxHwidResets($plan);
+        $expiresAt = gmdate('Y-m-d H:i:s', time() + $days * 86400);
+
         for ($i = 0; $i < $qty; $i++) {
             $key = generateLicenseKey($product);
-            $keyStmt = $pdo->prepare('INSERT INTO user_keys (user_id, license_key, product, plan, order_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime("now"))');
-            $keyStmt->execute([$userId, $key, $product, $plan, $orderId, 'active']);
+            $keyStmt = $pdo->prepare(
+                'INSERT INTO user_keys (user_id, license_key, product, plan, order_id, status, hwid_resets_used, hwid_resets_max, expires_at, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, datetime("now"))'
+            );
+            $keyStmt->execute([$userId, $key, $product, $plan, $orderId, 'active', $maxResets, $expiresAt]);
             $generatedKeys[] = [
                 'license_key' => $key,
                 'product' => $product,
                 'plan' => $plan,
                 'order_id' => $orderId,
-                'status' => 'active'
+                'status' => 'active',
+                'expires_at' => $expiresAt
             ];
+        }
+    }
+
+    // Consume non-free promo code use upon confirmed payment if not already recorded
+    if (!empty($order['promo_code'])) {
+        $chkPromo = $pdo->prepare('SELECT id FROM promo_redemptions WHERE order_id = ? LIMIT 1');
+        $chkPromo->execute([$orderId]);
+        if (!$chkPromo->fetch()) {
+            $pRowStmt = $pdo->prepare('SELECT id FROM promo_codes WHERE LOWER(code) = ? LIMIT 1');
+            $pRowStmt->execute([strtolower($order['promo_code'])]);
+            $pRow = $pRowStmt->fetch();
+            if ($pRow) {
+                $pdo->prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ? AND used_count < max_uses')->execute([$pRow['id']]);
+                $pdo->prepare('INSERT INTO promo_redemptions (promo_id, user_id, order_id, created_at) VALUES (?, ?, ?, datetime("now"))')
+                    ->execute([$pRow['id'], $userId, $orderId]);
+            }
         }
     }
 
@@ -671,8 +705,62 @@ try {
         header('Location: /dashboard.html?payment_success=1&order=' . urlencode($orderId));
         exit;
 
+    case 'webhook':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            jsonResponse(false, 'method not allowed.', [], 405);
+        }
+
+        $rawBody = file_get_contents('php://input') ?: '';
+        $sigKey = trim($squareConfig['webhook_signature_key'] ?? '');
+        if ($sigKey !== '' && isRealCredential($sigKey)) {
+            $providedSig = $_SERVER['HTTP_X_SQUARE_HMACSHA256_SIGNATURE'] ?? '';
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+            $host = $_SERVER['HTTP_HOST'] ?? 'chudcheats.xyz';
+            $notifUrl = $scheme . $host . ($_SERVER['REQUEST_URI'] ?? '/api/square.php?action=webhook');
+            $expectedSig = base64_encode(hash_hmac('sha256', $notifUrl . $rawBody, $sigKey, true));
+            if ($providedSig === '' || !hash_equals($expectedSig, $providedSig)) {
+                jsonResponse(false, 'invalid webhook signature.', [], 403);
+            }
+        }
+
+        $payload = json_decode($rawBody, true) ?: [];
+        $sqOrderId = $payload['data']['object']['payment']['order_id']
+            ?? $payload['data']['object']['order_updated']['order_id']
+            ?? $payload['data']['id']
+            ?? '';
+
+        if (empty($sqOrderId)) {
+            jsonResponse(true, 'webhook acknowledged (no order id).');
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM orders WHERE square_order_id = ? LIMIT 1');
+        $stmt->execute([$sqOrderId]);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            jsonResponse(true, 'webhook acknowledged (unmatched order).');
+        }
+
+        if ($order['status'] === 'completed') {
+            jsonResponse(true, 'order already completed.');
+        }
+
+        // Always verify paid state directly against Square Orders API
+        $verification = verifySquareOrderPaid($squareConfig, $sqOrderId);
+        if ($verification['paid']) {
+            if (!empty($verification['payment_id'])) {
+                $pdo->prepare('UPDATE orders SET square_payment_id = ? WHERE order_id = ?')
+                    ->execute([$verification['payment_id'], $order['order_id']]);
+            }
+            $keys = issueKeysForOrder($pdo, $order);
+            jsonResponse(true, 'webhook processed and keys issued.', ['keys_issued' => count($keys)]);
+        }
+
+        jsonResponse(true, 'webhook acknowledged (payment still pending).');
+        break;
+
     default:
-        jsonResponse(false, 'invalid action. supported: config, rate, check_promo, create_checkout, verify_order, callback.', [], 400);
+        jsonResponse(false, 'invalid action. supported: config, rate, check_promo, create_checkout, verify_order, callback, webhook.', [], 400);
         break;
     }
 } catch (Throwable $e) {

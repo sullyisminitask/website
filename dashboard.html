@@ -30,11 +30,11 @@
   <main>
     <!-- KEYS -->
     <section class="tabp" id="t-keys">
-      <h2>my keys</h2><p class="sub">your licenses, order details and key management. keys lock to the first pc that activates them.</p>
+      <h2>my keys</h2><p class="sub">your licenses, the loader and hwid resets. keys lock to the first pc that uses them.</p>
       <div class="stats3">
         <div class="box-c"><small>active keys</small><b id="s-active">0</b></div>
         <div class="box-c"><small>time left</small><b id="s-left">—</b></div>
-        <div class="box-c"><small>orbit status</small><b style="color:var(--ok)">undetected</b></div>
+        <div class="box-c"><small>orbit status</small><b id="s-orbit-st" style="color:var(--ok)">undetected</b></div>
       </div>
       <div id="keys"></div>
       <form class="box-c" id="redeem-f" style="margin-top:14px">
@@ -73,13 +73,13 @@
         <div class="box-h"><b>connected accounts</b></div>
         <div class="box-b" style="display:flex;align-items:center;justify-content:space-between;gap:16px">
           <div><b style="font-weight:500">discord</b><div style="color:var(--ink-3);font-size:13px" id="dc-s">open a ticket in #support with your order id to claim customer roles</div></div>
-          <a class="btn btn-line" href="https://discord.gg/Et76gjWDX2">open discord</a>
+          <a class="btn btn-line" href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener">open discord</a>
         </div>
       </div>
       <div class="box-c danger">
         <div class="box-h"><b>danger zone</b></div>
         <div class="box-b" style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-line" id="out-all">sign out</button>
+          <button class="btn btn-line" id="out-all">sign out everywhere</button>
           <button class="btn btn-danger" id="del">delete account</button>
         </div>
       </div>
@@ -103,7 +103,13 @@ const fmtLeft = ms => {
 };
 const fmtDate = ms => new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 const mask = k => k.length > 10 ? k.slice(0, 6) + '••••-' + k.slice(-4) : k;
+const maskHwid = h => h && h.length > 8 ? h.slice(0, 4) + '••••' + h.slice(-4) : h;
 const esc = s => String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+const getExpiryMs = k => {
+  if (k.expires_at) return parseUtc(k.expires_at);
+  return parseUtc(k.created_at) + planDays(k.plan) * DAY;
+};
 
 const renderKeys = () => {
   const box = $('#keys');
@@ -114,34 +120,39 @@ const renderKeys = () => {
       const createdMs = parseUtc(k.created_at);
       const days = planDays(k.plan);
       const totalMs = days * DAY;
-      const left = (createdMs + totalMs) - Date.now();
+      const expMs = getExpiryMs(k);
+      const left = expMs - Date.now();
       const isActive = left > 0 && String(k.status || 'active').toLowerCase() === 'active';
       const pct = Math.max(0, Math.min(100, (left / totalMs) * 100));
-      const resetsAllowed = days >= 30 ? 2 : days >= 7 ? 1 : 0;
+      const maxResets = Number(k.hwid_resets_max ?? (days >= 30 ? 2 : days >= 7 ? 1 : 0));
+      const usedResets = Number(k.hwid_resets_used || 0);
+      const resetsLeft = Math.max(0, maxResets - usedResets);
+      const hasHwid = Boolean(k.hwid && String(k.hwid).trim());
       const prod = String(k.product || 'orbit').toLowerCase();
       const planLabel = String(k.plan || (days + 'd')).toLowerCase();
       return `<div class="box-c" data-i="${i}">
         <div class="box-b lic">
-          <div class="prod"><img src="img/product.jpg" alt=""><div><b>${esc(prod)} · ${esc(planLabel)}</b><small>issued ${fmtDate(createdMs)}</small></div></div>
+          <div class="prod"><img src="img/product.jpg" alt=""><div><b>${esc(prod)} · ${esc(planLabel)}</b><small>started ${fmtDate(createdMs)}</small></div></div>
           <div class="keyrow"><span data-k>${esc(mask(k.license_key))}</span><button data-act="reveal">reveal</button><button data-act="copy">copy</button></div>
         </div>
         <div class="lic-meta">
           <div><small>expires in</small><b data-left>${isActive ? fmtLeft(left) : 'expired'}</b><div class="prog-exp"><i style="width:${isActive ? pct : 0}%"></i></div></div>
           <div><small>status</small><b style="color:${isActive ? 'var(--ok)' : 'var(--bad)'}">${isActive ? 'active' : 'expired'}</b></div>
-          <div><small>order</small><b>${esc(k.order_id || 'manual')}</b></div>
-          <div><small>hwid resets included</small><b>${resetsAllowed} via support</b></div>
+          <div><small>hwid</small><b>${hasHwid ? esc(maskHwid(k.hwid)) : 'not locked yet'}</b></div>
+          <div><small>hwid resets left</small><b>${resetsLeft} / ${maxResets}</b></div>
         </div>
         <div class="lic-act">
-          <a class="btn btn-acc" href="https://discord.gg/Et76gjWDX2" target="_blank" rel="noopener">download loader</a>
+          <a class="btn btn-acc" href="api/status.php?action=download_loader" data-act="download">download loader</a>
+          <button class="btn btn-line" data-act="reset" ${resetsLeft > 0 && hasHwid && isActive ? '' : 'disabled'}>reset hwid</button>
           <button class="btn btn-line" data-act="extend">extend · ${esc(planLabel)}</button>
           <a class="btn btn-ghost" href="guides.html">setup guide →</a>
         </div></div>`;
     }).join('');
   }
-  const active = keys.filter(k => (parseUtc(k.created_at) + planDays(k.plan) * DAY) > Date.now() && String(k.status || 'active').toLowerCase() === 'active');
+  const active = keys.filter(k => getExpiryMs(k) > Date.now() && String(k.status || 'active').toLowerCase() === 'active');
   $('#kc').textContent = active.length;
   $('#s-active').textContent = active.length;
-  const maxLeft = Math.max(0, ...active.map(k => parseUtc(k.created_at) + planDays(k.plan) * DAY - Date.now()));
+  const maxLeft = Math.max(0, ...active.map(k => getExpiryMs(k) - Date.now()));
   $('#s-left').textContent = maxLeft ? Math.floor(maxLeft / DAY) + 'd ' + Math.floor(maxLeft % DAY / 36e5) + 'h' : '—';
 };
 
@@ -157,7 +168,7 @@ const renderOrders = () => {
     const st = String(o.status || 'completed').toLowerCase();
     const cur = String(o.currency || 'AUD').toLowerCase();
     const badge = st === 'completed'
-      ? '<span class="st g">completed</span>'
+      ? '<span class="st g">paid</span>'
       : `<button class="btn btn-line" style="height:26px;padding:0 10px;font-size:11.5px" data-verify="${esc(o.order_id)}">verify pending</button>`;
     return `<tr><td class="mono">${esc(o.order_id)}</td><td>${esc(label)}</td><td>${fmtDate(parseUtc(o.created_at))}</td><td>$${Number(o.amount || 0).toFixed(2)} ${esc(cur)}</td><td>${badge}</td></tr>`;
   }).join('') : `<tr><td colspan="5" class="empty"><b>no orders yet</b></td></tr>`;
@@ -183,25 +194,59 @@ fromHash();
 
 setInterval(() => $$('#keys [data-i]').forEach(el => {
   const k = keys[+el.dataset.i]; if (!k) return;
-  const left = parseUtc(k.created_at) + planDays(k.plan) * DAY - Date.now();
+  const left = getExpiryMs(k) - Date.now();
   $('[data-left]', el).textContent = fmtLeft(left);
 }), 1000);
 
 $('#keys').addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
-  e.preventDefault();
   const card = b.closest('[data-i]'), k = keys[+card.dataset.i], act = b.dataset.act;
   if (!k) return;
+
   if (act === 'reveal') {
+    e.preventDefault();
     const s = $('[data-k]', card), on = b.textContent === 'reveal';
     s.textContent = on ? k.license_key : mask(k.license_key);
     b.textContent = on ? 'hide' : 'reveal';
   }
   if (act === 'copy') {
+    e.preventDefault();
     try { await navigator.clipboard.writeText(k.license_key); toast('key copied'); }
     catch { toast('copy failed, reveal it and copy by hand'); }
   }
+  if (act === 'download') {
+    e.preventDefault();
+    const res = await api('api/status.php?action=download_loader&format=json');
+    if (res.success && res.download_url) {
+      toast(res.message || 'starting loader download');
+      location.href = res.download_url;
+    } else if (res.discord_url) {
+      toast(res.message || 'opening discord loader channel');
+      window.open(res.discord_url, '_blank', 'noopener');
+    } else {
+      toast(res.message || 'unable to start download');
+    }
+  }
+  if (act === 'reset') {
+    e.preventDefault();
+    if (!confirm('reset the hwid on this key? the next pc that runs the loader will lock it.')) return;
+    b.disabled = true; b.textContent = 'resetting…';
+    const data = await api('api/auth.php?action=reset_hwid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key_id: k.id, license_key: k.license_key })
+    });
+    if (data.success) {
+      const updated = await refreshSession();
+      syncFromUser(updated);
+      toast(data.message || 'hwid reset. it locks again on next launch');
+    } else {
+      b.disabled = false; b.textContent = 'reset hwid';
+      toast(data.message || 'could not reset hwid');
+    }
+  }
   if (act === 'extend') {
+    e.preventDefault();
     CC.add(planTier(k.plan));
     setTimeout(() => location.href = 'cart.html', 400);
   }
@@ -277,8 +322,8 @@ $('#pass').onsubmit = async e => {
 };
 
 $('#out-all').onclick = async () => {
-  await api('api/auth.php?action=logout', { method: 'POST' });
-  location.href = 'login.html';
+  const data = await api('api/auth.php?action=logout_all', { method: 'POST' });
+  toast(data.message || 'signed out on every other device');
 };
 
 $('#del').onclick = async () => {
@@ -295,6 +340,16 @@ $('#del').onclick = async () => {
     toast(data.message || 'could not delete account');
   }
 };
+
+api('api/status.php?action=status').then(st => {
+  if (st && st.success && Array.isArray(st.components)) {
+    const orb = st.components.find(c => c.component_key === 'orbit');
+    if (orb && $('#s-orbit-st')) {
+      $('#s-orbit-st').textContent = String(orb.status || 'undetected').toLowerCase();
+      $('#s-orbit-st').style.color = orb.badge_class === 'g' ? 'var(--ok)' : 'var(--warn)';
+    }
+  }
+});
 
 ready.then(async u => {
   if (!u) return;
