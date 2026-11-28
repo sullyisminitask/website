@@ -3591,3 +3591,15 @@ body {
   margin-top: 2px;
   font-size: 0.78rem;
 }
+
+.turnstile-slot {
+  display: none;
+  min-height: 66px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.turnstile-slot.visible {
+  display: flex;
+}

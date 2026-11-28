@@ -18,6 +18,14 @@ return [
         'environment' => 'sandbox', // 'sandbox' for testing, 'production' for live payments
         'application_id' => 'sandbox-sq0idb-YOUR_SQUARE_APP_ID',
         'access_token' => 'EAAA_YOUR_SQUARE_ACCESS_TOKEN',
-        'location_id' => 'YOUR_SQUARE_LOCATION_ID'
+        'location_id' => 'YOUR_SQUARE_LOCATION_ID',
+        'currency' => 'USD'
+    ],
+
+    // Cloudflare Turnstile Verification
+    'turnstile' => [
+        'enabled' => false,
+        'site_key' => 'YOUR_CLOUDFLARE_TURNSTILE_SITE_KEY',
+        'secret_key' => 'YOUR_CLOUDFLARE_TURNSTILE_SECRET_KEY'
     ]
 ];

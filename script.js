@@ -27,6 +27,83 @@ document.addEventListener('DOMContentLoaded', () => {
     rateSource: 'loading'
   };
 
+  let turnstileState = {
+    enabled: false,
+    siteKey: '',
+    widgets: { login: null, register: null, checkout: null },
+    tokens: { login: '', register: '', checkout: '' },
+    retries: { login: 0, register: 0, checkout: 0 }
+  };
+
+  function isTurnstileActive() {
+    return Boolean(turnstileState.enabled && turnstileState.siteKey);
+  }
+
+  function syncTurnstileSlotsVisibility() {
+    const active = isTurnstileActive();
+    ['turnstile-login', 'turnstile-register', 'turnstile-checkout'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('visible', active);
+    });
+  }
+
+  function renderTurnstileSlot(slotKey, elementId) {
+    if (!isTurnstileActive()) return;
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    container.classList.add('visible');
+
+    if (typeof window.turnstile === 'undefined') {
+      if ((turnstileState.retries[slotKey] || 0) < 40) {
+        turnstileState.retries[slotKey] = (turnstileState.retries[slotKey] || 0) + 1;
+        setTimeout(() => renderTurnstileSlot(slotKey, elementId), 150);
+      }
+      return;
+    }
+
+    turnstileState.retries[slotKey] = 0;
+    const existingId = turnstileState.widgets[slotKey];
+    if (existingId !== null) {
+      turnstileState.tokens[slotKey] = '';
+      try { window.turnstile.reset(existingId); } catch (e) {}
+      return;
+    }
+
+    container.innerHTML = '';
+    turnstileState.tokens[slotKey] = '';
+    turnstileState.widgets[slotKey] = window.turnstile.render(container, {
+      sitekey: turnstileState.siteKey,
+      theme: 'dark',
+      callback: (token) => {
+        turnstileState.tokens[slotKey] = token || '';
+      },
+      'expired-callback': () => {
+        turnstileState.tokens[slotKey] = '';
+      },
+      'error-callback': () => {
+        turnstileState.tokens[slotKey] = '';
+      }
+    });
+  }
+
+  function resetTurnstileSlot(slotKey) {
+    turnstileState.tokens[slotKey] = '';
+    const widgetId = turnstileState.widgets[slotKey];
+    if (widgetId !== null && typeof window.turnstile !== 'undefined') {
+      try { window.turnstile.reset(widgetId); } catch (e) {}
+    }
+  }
+
+  function getTurnstileToken(slotKey) {
+    if (!isTurnstileActive()) return '';
+    if (turnstileState.tokens[slotKey]) return turnstileState.tokens[slotKey];
+    const widgetId = turnstileState.widgets[slotKey];
+    if (widgetId !== null && typeof window.turnstile !== 'undefined') {
+      try { return window.turnstile.getResponse(widgetId) || ''; } catch (e) {}
+    }
+    return '';
+  }
+
   // elements
   const views = {
     'home': document.getElementById('view-home'),
@@ -720,6 +797,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function openAccountModal() {
     clearFeedback();
     if (accountModal) accountModal.classList.add('active');
+    if (registerForm && registerForm.classList.contains('active')) {
+      renderTurnstileSlot('register', 'turnstile-register');
+    } else {
+      renderTurnstileSlot('login', 'turnstile-login');
+    }
   }
 
   function closeAccountModal() {
@@ -742,6 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loginForm.classList.add('active');
       registerForm.classList.remove('active');
       clearFeedback();
+      renderTurnstileSlot('login', 'turnstile-login');
     });
 
     tabBtnRegister.addEventListener('click', () => {
@@ -750,6 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
       registerForm.classList.add('active');
       loginForm.classList.remove('active');
       clearFeedback();
+      renderTurnstileSlot('register', 'turnstile-register');
     });
   }
 
@@ -836,24 +920,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const cfToken = getTurnstileToken('register');
+      if (isTurnstileActive() && !cfToken) {
+        showFeedback('please complete cloudflare verification before registering.');
+        return;
+      }
+
       try {
         const res = await fetch('api/auth.php?action=register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, confirm_password: confirmPassword })
+          body: JSON.stringify({
+            email,
+            password,
+            confirm_password: confirmPassword,
+            cf_turnstile_response: cfToken
+          })
         });
         const data = await res.json();
 
         if (data.success) {
           showFeedback('account created successfully!', false);
           registerForm.reset();
+          resetTurnstileSlot('register');
           setTimeout(() => {
             updateAuthUI(data.user);
           }, 500);
         } else {
+          if (data.turnstile_reset || isTurnstileActive()) resetTurnstileSlot('register');
           showFeedback(data.message || 'registration failed.');
         }
       } catch (err) {
+        if (isTurnstileActive()) resetTurnstileSlot('register');
         showFeedback('connection error. check server setup.');
       }
     });
@@ -872,24 +970,37 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const cfToken = getTurnstileToken('login');
+      if (isTurnstileActive() && !cfToken) {
+        showFeedback('please complete cloudflare verification before logging in.');
+        return;
+      }
+
       try {
         const res = await fetch('api/auth.php?action=login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({
+            email,
+            password,
+            cf_turnstile_response: cfToken
+          })
         });
         const data = await res.json();
 
         if (data.success) {
           showFeedback('welcome back!', false);
           loginForm.reset();
+          resetTurnstileSlot('login');
           setTimeout(() => {
             updateAuthUI(data.user);
           }, 400);
         } else {
+          if (data.turnstile_reset || isTurnstileActive()) resetTurnstileSlot('login');
           showFeedback(data.message || 'invalid email or password.');
         }
       } catch (err) {
+        if (isTurnstileActive()) resetTurnstileSlot('login');
         showFeedback('connection error. check server setup.');
       }
     });
@@ -1014,6 +1125,21 @@ document.addEventListener('DOMContentLoaded', () => {
             squareModeBadge.className = 'square-badge sandbox';
           }
         }
+        turnstileState.enabled = !!data.turnstile_enabled;
+        turnstileState.siteKey = data.turnstile_site_key || '';
+        syncTurnstileSlotsVisibility();
+        if (isTurnstileActive()) {
+          if (accountModal && accountModal.classList.contains('active')) {
+            if (registerForm && registerForm.classList.contains('active')) {
+              renderTurnstileSlot('register', 'turnstile-register');
+            } else {
+              renderTurnstileSlot('login', 'turnstile-login');
+            }
+          }
+          if (checkoutModal && checkoutModal.classList.contains('active')) {
+            renderTurnstileSlot('checkout', 'turnstile-checkout');
+          }
+        }
         updateCheckoutConversionUI();
       }
     } catch (e) {}
@@ -1036,6 +1162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkoutPromoInput) checkoutPromoInput.value = '';
     if (checkoutTosCheckbox) checkoutTosCheckbox.checked = false;
     if (checkoutTosPreview) checkoutTosPreview.style.display = 'none';
+    renderTurnstileSlot('checkout', 'turnstile-checkout');
 
     if (checkoutItemsList) {
       checkoutItemsList.innerHTML = '';
@@ -1180,6 +1307,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const cfToken = getTurnstileToken('checkout');
+      if (isTurnstileActive() && !cfToken) {
+        if (checkoutFeedback) {
+          checkoutFeedback.className = 'auth-feedback error';
+          checkoutFeedback.textContent = 'please complete cloudflare verification before checking out.';
+        }
+        return;
+      }
+
       if (checkoutFeedback) {
         checkoutFeedback.className = 'auth-feedback';
         checkoutFeedback.textContent = '';
@@ -1202,12 +1338,14 @@ document.addEventListener('DOMContentLoaded', () => {
             items: cart,
             email: email,
             promo_code: appliedPromo ? appliedPromo.code : '',
-            tos_accepted: true
+            tos_accepted: true,
+            cf_turnstile_response: cfToken
           })
         });
         const data = await res.json();
 
         if (data.success) {
+          resetTurnstileSlot('checkout');
           if (data.checkout_url) {
             window.location.href = data.checkout_url;
             return;
@@ -1236,12 +1374,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           showToast('keys delivered to my keys');
         } else {
+          if (data.turnstile_reset || isTurnstileActive()) resetTurnstileSlot('checkout');
           if (checkoutFeedback) {
             checkoutFeedback.className = 'auth-feedback error';
             checkoutFeedback.textContent = (data.message || 'checkout failed. please try again.').toLowerCase();
           }
         }
       } catch (err) {
+        if (isTurnstileActive()) resetTurnstileSlot('checkout');
         if (checkoutFeedback) {
           checkoutFeedback.className = 'auth-feedback error';
           checkoutFeedback.textContent = 'network error contacting square api. please ensure php server is running.';

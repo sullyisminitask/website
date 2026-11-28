@@ -18,6 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/turnstile.php';
 
 function jsonResponse(bool $success, string $message, array $extra = [], int $httpCode = 200): void {
     http_response_code($httpCode);
@@ -270,6 +271,7 @@ try {
     case 'config':
     case 'rate':
         $fx = getUsdToAudRate(!empty($_GET['refresh']));
+        $turnstilePublic = getTurnstilePublicConfig();
         jsonResponse(true, 'square configuration', [
             'application_id' => isRealCredential($appId) ? $appId : '',
             'location_id' => isRealCredential($locationId) ? $locationId : '',
@@ -279,7 +281,9 @@ try {
             'usd_to_aud' => $fx['rate'],
             'rate_source' => $fx['source'],
             'rate_updated_at' => $fx['updated_at'],
-            'configured' => $isSquareConfigured
+            'configured' => $isSquareConfigured,
+            'turnstile_enabled' => $turnstilePublic['enabled'],
+            'turnstile_site_key' => $turnstilePublic['site_key']
         ]);
         break;
 
@@ -326,6 +330,11 @@ try {
         $tosAccepted = !empty($input['tos_accepted']);
         if (!$tosAccepted) {
             jsonResponse(false, 'you must accept the terms of service before checking out.', [], 400);
+        }
+
+        $turnstileResult = verifyTurnstileToken((string)($input['cf_turnstile_response'] ?? $input['turnstile_token'] ?? ''));
+        if (!$turnstileResult['ok']) {
+            jsonResponse(false, 'please complete cloudflare verification before checking out.', ['turnstile_reset' => true], 400);
         }
 
         $userId = $_SESSION['user_id'] ?? null;

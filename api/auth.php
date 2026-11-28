@@ -24,6 +24,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/turnstile.php';
 
 function jsonResponse(bool $success, string $message, array $extra = [], int $httpCode = 200): void {
     http_response_code($httpCode);
@@ -58,6 +59,11 @@ switch ($action) {
     case 'register':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $turnstileResult = verifyTurnstileToken((string)($input['cf_turnstile_response'] ?? $input['turnstile_token'] ?? ''));
+        if (!$turnstileResult['ok']) {
+            jsonResponse(false, 'please complete cloudflare verification before registering.', ['turnstile_reset' => true], 400);
         }
 
         $email = trim(strtolower($input['email'] ?? ''));
@@ -119,6 +125,11 @@ switch ($action) {
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             jsonResponse(false, 'Method not allowed', [], 405);
+        }
+
+        $turnstileResult = verifyTurnstileToken((string)($input['cf_turnstile_response'] ?? $input['turnstile_token'] ?? ''));
+        if (!$turnstileResult['ok']) {
+            jsonResponse(false, 'please complete cloudflare verification before logging in.', ['turnstile_reset' => true], 400);
         }
 
         $email = trim(strtolower($input['email'] ?? ''));
